@@ -1,0 +1,60 @@
+------------------------------------Grammar----------------------------------------
+program := program function | function.
+function := function_header function_body | procedure_header procedure_body
+            | main_header function_body.
+
+main_header := <func> <main> <(> <[> <[> <char> <]> <]> <ident> <)> <->> <int>.
+procedure_header := <proc> <ident> <(> function_parameters <)>.
+function_header := <func> <ident> <(> function_parameters <)> <->> type.
+function_parameters := function_parameters_sections | .
+function_parameters_sections := variable_definition <;> function_parameters_sections
+                                | variable_definition.
+
+variable_definition := variable_definition_step <->> type.
+variable_definition_step := variable_definition_simple | variable_definition_complex.
+variable_definition_simple := <ident> <,> variable_definition_step | <ident>.
+variable_definition_complex := <ident> <=> rvalue_expr <,> variable_definition_step
+                                | <ident> <=> rvalue_expr.
+
+function_body := operations <endfunc>.
+procedure_body := operations <endproc> | <endproc>.
+operations := operation <;> operations | operation.
+operation := variable_definition | variable_assigment | function_call | conditional_block
+                | while_block | for_block | repeat_block | exception_block.
+
+variable_assigment := lvalue <=> rvalue.
+
+lvalue := ident_expr.
+ident_expr := <ident> | <ident> ident_expr_tail.
+ident_expr_tail := <[> <number> <]> ident_expr_tail | <[> <number> <]>.
+
+rvalue := ident_expr | number_expr | <string> | <nil> | <boolean_value> | function_call.
+number_expr := unary_number_operator number_expr | number_expr binary_number_operator number_expr
+                | number_expr number_expr | <number> | <symbol> | function_call | <(> number_expr <)>.
+unary_number_operator := <->.
+binary_number_operator := <^> | </> | <%> | <+> | <->.
+function_call := <ident> <(> function_call_parameters <)>.
+function_call_parameters := rvalue <,> function_call_parameters | rvalue.
+
+conditional_block := <if> condition <then> operations conditional_block_tail <endif>.
+conditional_block_tail := <elseif> condition <then> operations conditional_block_tail | <else> operations.
+condition := unary_bool_operator condition | condition binary_bool_operator condition
+            | rvalue_expr binary_cmp_operator rvalue | <boolean_value>.
+unary_bool_operator := <!>.
+binary_bool_operator := <&&> | <||> | <^^>.
+binary_cmp_operator := <==> | <!=> | <<> | <>> | <<=> | <>=>.
+
+while_block := <while> condition <do> operations <endwhile>.
+
+for_block := <for> for_block_init <to> rvalue step <number> <do> operations <endfor>.
+for_block_init := <ident> <=> <number> | <ident> <=> <symbol>
+                    | <ident> <=> <number> <->> <int>
+                    | <ident> <=> <symbol> <->> <char>.
+
+repeat_block := <repeat> operations <until> condition.
+
+exception_block := <check> condition.
+
+type := <int> | <char> | <bool> | <[> type <]>.
+
+<boolean_value> := <tt> | <ff>.

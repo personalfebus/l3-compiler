@@ -69,4 +69,8 @@ public class NumberToken implements Token {
     public String getBody() {
         return String.valueOf(number);
     }
+
+    public int getNumber() {
+        return number;
+    }
 }

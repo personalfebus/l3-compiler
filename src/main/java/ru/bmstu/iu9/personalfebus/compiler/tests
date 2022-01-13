@@ -1,2 +1,16 @@
-0xF > 0xA + 1 -> &xaaxaxaxaxaxax ввв op(do, ko); "hello"
+0xF > 0xA + 1 -> &xaaxaxaxaxaxax ввв op(do, ko); "hello" 0xFFF '$"$' doko '$95$'
 
+func SumVectors
+    (A, B -> [int]) -> [int]
+    size = length(A) -> int;
+    check size = length(B);
+    C = [int size] -> [int];
+    for i = 0 -> int to size - 1 do
+        C[i] = A[i] + B[i]
+    endfor;
+    SumVectors = C
+endfunc
+
+func main([[char]] args) -> int
+    main = 0
+endfunc

@@ -2,7 +2,6 @@ package ru.bmstu.iu9.personalfebus.compiler.lexer.token;
 
 import ru.bmstu.iu9.personalfebus.compiler.lexer.token.exception.BadIdentifierSyntaxError;
 
-//TODO ?
 public class IdentifierToken implements Token {
     private final int line;
     private final int position;

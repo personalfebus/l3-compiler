@@ -1,7 +1,6 @@
 package ru.bmstu.iu9.personalfebus.compiler.lexer.token;
 
-//TODO ?
-public class KeywordToken implements Token{
+public class KeywordToken implements Token {
     private final int line;
     private final int position;
     private final String body;

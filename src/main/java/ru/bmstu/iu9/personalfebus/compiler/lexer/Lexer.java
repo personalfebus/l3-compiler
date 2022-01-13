@@ -1,14 +1,11 @@
 package ru.bmstu.iu9.personalfebus.compiler.lexer;
 
 import ru.bmstu.iu9.personalfebus.compiler.lexer.token.*;
-import ru.bmstu.iu9.personalfebus.compiler.lexer.token.exception.BadIdentifierSyntaxError;
-import ru.bmstu.iu9.personalfebus.compiler.lexer.token.exception.BadNumberSyntaxError;
-import ru.bmstu.iu9.personalfebus.compiler.lexer.token.exception.SymbolClosureError;
-import ru.bmstu.iu9.personalfebus.compiler.lexer.token.exception.UnexpectedSymbolError;
+import ru.bmstu.iu9.personalfebus.compiler.lexer.token.exception.*;
 
 import java.nio.charset.StandardCharsets;
 
-//TODO STRING AND CHAR CONST
+//TODO STRING
 public class Lexer implements ILexer {
     private final String input;
     private int position;
@@ -45,7 +42,7 @@ public class Lexer implements ILexer {
         }
     }
 
-    private void getNextToken() throws BadNumberSyntaxError, BadIdentifierSyntaxError, UnexpectedSymbolError, SymbolClosureError {
+    private void getNextToken() throws BadNumberSyntaxError, BadIdentifierSyntaxError, UnexpectedSymbolError, SymbolClosureError, SymbolInterpretationException, StringClosureError {
         while (position < input.length()) {
             //System.out.println(position + ") " + input.charAt(position));
             if (isSpaceSymbol()) {
@@ -80,8 +77,16 @@ public class Lexer implements ILexer {
                 int start = position + 1;
                 skipToEndOfQuote(true);
                 String symbol = input.substring(start, position);
-//                currentToken = TODO
+                currentToken = new SymbolToken(line, linePosition, symbol);
                 moveForward();
+                return;
+            } else if (isDoubleQuote()) {
+                int start = position + 1;
+                skipToEndOfQuote(false);
+                String str = input.substring(start, position);
+                currentToken = new StringToken(line, linePosition, str);
+                moveForward();
+                return;
             } else {
                 //TODO other symbols ???
                 moveForward();
@@ -91,11 +96,10 @@ public class Lexer implements ILexer {
         currentToken = null;
     }
 
-    private void skipToEndOfQuote(boolean isSingle) throws SymbolClosureError {
+    private void skipToEndOfQuote(boolean isSingle) throws SymbolClosureError, StringClosureError {
         moveForward();
+        int numberOfDollars = 0;
         if (isSingle) {
-            int numberOfDollars = 0;
-
             for (;position < input.length();) {
                 if (isDollar()) numberOfDollars++;
                 else if (isSingleQuote() && numberOfDollars % 2 == 0) break;
@@ -103,7 +107,12 @@ public class Lexer implements ILexer {
             }
             if (position >= input.length()) throw new SymbolClosureError(line, linePosition);
         } else {
-            //TODO skip to end for strings
+            for (;position < input.length();) {
+                if (isDollar()) numberOfDollars++;
+                else if (isDoubleQuote() && numberOfDollars % 2 == 0) break;
+                moveForward();
+            }
+            if (position >= input.length()) throw new StringClosureError(line, linePosition);
         }
     }
 

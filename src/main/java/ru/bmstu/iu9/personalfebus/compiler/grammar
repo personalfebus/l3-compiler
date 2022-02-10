@@ -28,9 +28,16 @@ lvalue := ident_expr.
 ident_expr := <ident> | <ident> ident_expr_tail.
 ident_expr_tail := <[> <number> <]> ident_expr_tail | <[> <number> <]>.
 
-rvalue := ident_expr | number_expr | <string> | <nil> | <boolean_value> | function_call.
-number_expr := unary_number_operator number_expr | number_expr binary_number_operator number_expr
-                | number_expr number_expr | <number> | <symbol> | function_call | <(> number_expr <)>.
+rvalue := ident_expr | arithmetic_expr | <string> | <boolean_value> | reference | function_call.
+reference := <[> reference_body <]> | <nil>.
+reference_body := <int> <number> | <char> <number> | <bool> <number> | <[> reference_body <]>.
+arithmetic_expr := unary_number_operator arithmetic_expr
+                | arithmetic_expr arithmetic_expr | <number> | <symbol> | ident_expr | function_call
+                | <(> arithmetic_expr <)>
+                | <number> binary_number_operator arithmetic_expr
+                | <symbol> binary_number_operator arithmetic_expr
+                | ident_expr binary_number_operator arithmetic_expr
+                | function_call binary_number_operator arithmetic_expr.
 unary_number_operator := <->.
 binary_number_operator := <^> | </> | <%> | <+> | <->.
 function_call := <ident> <(> function_call_parameters <)>.

@@ -7,7 +7,7 @@ public class IdentifierToken implements Token {
     private final int position;
     private final String body;
 
-    private static final String TYPE = "IDENTIFIER";
+    public static final String TYPE = "IDENTIFIER";
 
     public IdentifierToken(int line, int position, String body) throws BadIdentifierSyntaxError {
         this.line = line;

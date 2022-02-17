@@ -9,7 +9,7 @@ public class SymbolToken implements Token {
     private final int position;
     private final char body;
 
-    private static final String TYPE = "SYMBOL";
+    public static final String TYPE = "SYMBOL";
 
     public SymbolToken(int line, int position, String body) throws SymbolInterpretationException {
         this.line = line;

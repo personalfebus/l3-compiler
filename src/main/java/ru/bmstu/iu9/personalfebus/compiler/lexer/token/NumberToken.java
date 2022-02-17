@@ -7,7 +7,7 @@ public class NumberToken implements Token {
     private final int line;
     private final int position;
 
-    private static final String TYPE = "NUMBER";
+    public static final String TYPE = "NUMBER";
 
     public NumberToken(String input, int line, int position) throws BadNumberSyntaxError {
         this.line = line;

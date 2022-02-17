@@ -5,7 +5,7 @@ public class StringToken implements Token {
     private final int position;
     private final String body;
 
-    private static final String TYPE = "STRING";
+    public static final String TYPE = "STRING";
 
     public StringToken(int line, int position, String body) {
         this.line = line;

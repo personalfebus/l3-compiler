@@ -1,5 +1,5 @@
 ------------------------------------Grammar----------------------------------------
-program := program function | function.
+program := function program | function.
 function := function_header function_body | procedure_header procedure_body
             | main_header function_body.
 

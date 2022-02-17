@@ -5,7 +5,7 @@ public class KeywordToken implements Token {
     private final int position;
     private final String body;
 
-    private static final String TYPE = "KEYWORD";
+    public static final String TYPE = "KEYWORD";
 
     public KeywordToken(int line, int position, String body) {
         this.line = line;

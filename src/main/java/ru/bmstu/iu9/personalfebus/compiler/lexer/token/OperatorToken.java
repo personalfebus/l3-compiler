@@ -5,7 +5,7 @@ public class OperatorToken implements Token {
     private final int position;
     private final String body;
 
-    private static final String TYPE = "OPERATOR";
+    public static final String TYPE = "OPERATOR";
 
     public OperatorToken(int line, int position, String body) {
         this.line = line;

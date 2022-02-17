@@ -4,12 +4,18 @@ import ru.bmstu.iu9.personalfebus.compiler.ast.AstFunction;
 import ru.bmstu.iu9.personalfebus.compiler.ast.AstFunctionHeader;
 import ru.bmstu.iu9.personalfebus.compiler.ast.AstProgram;
 import ru.bmstu.iu9.personalfebus.compiler.ast.value.AstIdentExpr;
+import ru.bmstu.iu9.personalfebus.compiler.ast.value.RValue;
+import ru.bmstu.iu9.personalfebus.compiler.ast.variable.AstType;
+import ru.bmstu.iu9.personalfebus.compiler.ast.variable.AstVariable;
 import ru.bmstu.iu9.personalfebus.compiler.lexer.ILexer;
 import ru.bmstu.iu9.personalfebus.compiler.lexer.token.*;
 import ru.bmstu.iu9.personalfebus.compiler.parser.exception.BadSyntaxException;
 import ru.bmstu.iu9.personalfebus.compiler.parser.exception.SyntaxException;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class Parser implements IParser {
     private final ILexer lexer;
@@ -62,16 +68,18 @@ public class Parser implements IParser {
 
         if (currentToken.getBody().equalsIgnoreCase("func")) {
             //function
-            AstFunctionHeader header = parseFunctionHeader();
+            AstFunctionHeader header = parseFunctionHeader(false);
         } else if (currentToken.getBody().equalsIgnoreCase("proc")) {
             //procedure
-            AstFunctionHeader header = parseProcedureHeader();
-        } else throw new BadSyntaxException("Bad syntax in function header: expected <func> or <proc> or <main>");
+            AstFunctionHeader header = parseFunctionHeader(true);
+        } else {
+            throw new BadSyntaxException("Bad syntax in function header: expected func or proc or main");
+        }
 
         return null; //TODO
     }
 
-    private AstFunctionHeader parseFunctionHeader() throws SyntaxException {
+    private AstFunctionHeader parseFunctionHeader(boolean isProcedure) throws SyntaxException, BadSyntaxException {
         nextToken();
         assertTokenType(IdentifierToken.TYPE);
         Token name = currentToken;
@@ -82,23 +90,138 @@ public class Parser implements IParser {
 
         AstFunctionHeader header = new AstFunctionHeader(name.getBody());
 
-        while (currentToken.getType().equalsIgnoreCase(EofToken.TYPE)) {
-            nextToken();
+        nextToken();
+        if (currentToken.getType().equalsIgnoreCase(OperatorToken.TYPE)
+                && currentToken.getBody().equalsIgnoreCase(")")) {
+            return header;
+        }
 
-            if (currentToken.getType().equalsIgnoreCase(OperatorToken.TYPE)
-                    && currentToken.getBody().equalsIgnoreCase(")")) {
+        Set<AstVariable> set = new HashSet<>();
+        for (;;) {
+            header.addVariable(parseIdentExpr());
+            set.addAll(parseVariableDefinition());
+            assertTokenType(OperatorToken.TYPE);
+
+            if (currentToken.getBody().equalsIgnoreCase(")")) {
                 break;
             }
 
-            header.addVariable(parseIdentExpr());
+            assertTokenBody(";");
         }
+        header.setVariables(set);
+        nextToken();
+
+        if (!isProcedure) {
+            assertTokenType(OperatorToken.TYPE);
+            assertTokenBody("->");
+            nextToken();
+            AstType type = parseType();
+            header.setReturnType(type);
+        }
+        return header;
     }
 
     private AstFunctionHeader parseProcedureHeader() {
 
     }
 
-    private
+    private Set<AstVariable> parseVariableDefinition() throws SyntaxException, BadSyntaxException {
+        //no initialization
+        Set<AstVariable> set = new HashSet<>();
+        for (;;) {
+            assertTokenType(IdentifierToken.TYPE);
+            String name = currentToken.getBody();
+            nextToken();
+
+            assertTokenType(OperatorToken.TYPE);
+            if (currentToken.getBody().equalsIgnoreCase("->")) {
+                break;
+            } else if (!currentToken.getBody().equalsIgnoreCase(",")) {
+                throw new BadSyntaxException("Bad syntax in variable definition: expected , or ->");
+            }
+
+            set.add(new AstVariable(name));
+            nextToken();
+        }
+        nextToken();
+
+        AstType type = parseType();
+        for (AstVariable variable : set) {
+            variable.setType(type);
+        }
+
+        return set;
+    }
+
+    private Set<AstVariable> parseVariableDefinitionOrInitialization() throws SyntaxException, BadSyntaxException {
+        //no initialization
+        Set<AstVariable> set = new HashSet<>();
+        for (;;) {
+            assertTokenType(IdentifierToken.TYPE);
+            String name = currentToken.getBody();
+            nextToken();
+
+            assertTokenType(OperatorToken.TYPE);
+            if (currentToken.getBody().equalsIgnoreCase("->")) {
+                break;
+            } else if (currentToken.getBody().equalsIgnoreCase("=")) {
+                //initialization
+                nextToken();
+                RValue rValue = parseRValue();
+                set.add(new AstVariable(name, rValue));
+                nextToken();
+                continue;
+            } else if (!currentToken.getBody().equalsIgnoreCase(",")) {
+                throw new BadSyntaxException("Bad syntax in variable definition: expected , or ->");
+            }
+
+            set.add(new AstVariable(name));
+            nextToken();
+        }
+        nextToken();
+
+        AstType type = parseType();
+        for (AstVariable variable : set) {
+            variable.setType(type);
+        }
+
+        return set;
+    }
+
+    private AstType parseType() throws SyntaxException {
+        int depth = 0;
+
+        while (currentToken.getType().equalsIgnoreCase(OperatorToken.TYPE)
+                    && currentToken.getBody().equalsIgnoreCase("[")) {
+            depth++;
+            nextToken();
+        }
+
+        assertTokenType(KeywordToken.TYPE);
+        if (currentToken.getBody().equalsIgnoreCase("int")
+                || currentToken.getBody().equalsIgnoreCase("bool")
+                || currentToken.getBody().equalsIgnoreCase("char")) {
+            String typeName = currentToken.getBody();
+            nextToken();
+
+            for (int i = depth; i > 0; i--) {
+                assertTokenType(OperatorToken.TYPE);
+                assertTokenBody("]");
+                nextToken();
+            }
+
+            if (depth > 0) {
+                return new AstType(typeName, true, depth);
+            } else return new AstType(typeName, false, 0);
+        } else {
+            assertTokenBody("int or bool or char"); //guaranteed exception
+            return null;
+        }
+    }
+
+    RValue parseRValue() {
+        return null; //todo
+    }
 
     private AstIdentExpr parseIdentExpr() throws SyntaxException {
         assertTokenType(IdentifierToken.TYPE);

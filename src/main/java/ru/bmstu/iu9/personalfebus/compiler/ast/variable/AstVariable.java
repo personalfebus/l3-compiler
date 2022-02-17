@@ -4,17 +4,15 @@ import ru.bmstu.iu9.personalfebus.compiler.ast.value.RValue;
 
 public class AstVariable {
     private final String name;
-    private final String type;
+    private AstType type;
     private RValue rValue;
 
-    public AstVariable(String name, String type) {
+    public AstVariable(String name) {
         this.name = name;
-        this.type = type;
     }
 
-    public AstVariable(String name, String type, RValue rValue) {
+    public AstVariable(String name, RValue rValue) {
         this.name = name;
-        this.type = type;
         this.rValue = rValue;
     }
 
@@ -26,11 +24,19 @@ public class AstVariable {
         return name;
     }
 
-    public String getType() {
+    public AstType getType() {
         return type;
     }
 
     public RValue getrValue() {
         return rValue;
+    }
+
+    public void setType(AstType type) {
+        this.type = type;
+    }
+
+    public void setrValue(RValue rValue) {
+        this.rValue = rValue;
     }
 }

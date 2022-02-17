@@ -1,9 +1,9 @@
 package ru.bmstu.iu9.personalfebus.compiler.ast.variable;
 
 public class AstType {
-    private String typeName;
-    private boolean isArray;
-    private int arrayDepth;
+    private final String typeName;
+    private final boolean isArray;
+    private final int arrayDepth;
 
     public AstType(String typeName, boolean isArray, int arrayDepth) {
         this.typeName = typeName;

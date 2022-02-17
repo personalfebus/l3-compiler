@@ -1,8 +1,10 @@
 package ru.bmstu.iu9.personalfebus.compiler.parser;
 
 import ru.bmstu.iu9.personalfebus.compiler.ast.AstFunction;
+import ru.bmstu.iu9.personalfebus.compiler.ast.AstFunctionBody;
 import ru.bmstu.iu9.personalfebus.compiler.ast.AstFunctionHeader;
 import ru.bmstu.iu9.personalfebus.compiler.ast.AstProgram;
+import ru.bmstu.iu9.personalfebus.compiler.ast.operation.AstOperation;
 import ru.bmstu.iu9.personalfebus.compiler.ast.value.AstIdentExpr;
 import ru.bmstu.iu9.personalfebus.compiler.ast.value.RValue;
 import ru.bmstu.iu9.personalfebus.compiler.ast.variable.AstType;
@@ -76,7 +78,33 @@ public class Parser implements IParser {
             throw new BadSyntaxException("Bad syntax in function header: expected func or proc or main");
         }
 
+
+
         return null; //TODO
+    }
+
+    private AstFunctionBody parseFunctionBody(boolean isProcedure) throws SyntaxException {
+        AstFunctionBody body = new AstFunctionBody();
+        for (;;) {
+            body.addOperation(parseOperation());
+            //assuming parseOperation has nextToken in the end
+
+            if (currentToken.getType().equalsIgnoreCase(KeywordToken.TYPE)
+                    && ((isProcedure && currentToken.getBody().equalsIgnoreCase("endproc"))
+                        || (!isProcedure && currentToken.getBody().equalsIgnoreCase("endfunc")))) {
+                break; //nextToken?? todo
+            }
+
+            assertTokenType(OperatorToken.TYPE);
+            assertTokenBody(";");
+            nextToken();
+        }
+
+        return body;
+    }
+
+    private AstOperation parseOperation() {
+
     }
 
     private AstFunctionHeader parseFunctionHeader(boolean isProcedure) throws SyntaxException, BadSyntaxException {
@@ -98,7 +126,6 @@ public class Parser implements IParser {
 
         Set<AstVariable> set = new HashSet<>();
         for (;;) {
-            header.addVariable(parseIdentExpr());
             set.addAll(parseVariableDefinition());
             assertTokenType(OperatorToken.TYPE);
 
@@ -119,10 +146,6 @@ public class Parser implements IParser {
             header.setReturnType(type);
         }
         return header;
-    }
-
-    private AstFunctionHeader parseProcedureHeader() {
-
     }
 
     private Set<AstVariable> parseVariableDefinition() throws SyntaxException, BadSyntaxException {

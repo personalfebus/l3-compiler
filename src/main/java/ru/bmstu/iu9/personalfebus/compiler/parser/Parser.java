@@ -5,10 +5,7 @@ import ru.bmstu.iu9.personalfebus.compiler.ast.AstFunctionHeader;
 import ru.bmstu.iu9.personalfebus.compiler.ast.AstProgram;
 import ru.bmstu.iu9.personalfebus.compiler.ast.value.AstIdentExpr;
 import ru.bmstu.iu9.personalfebus.compiler.lexer.ILexer;
-import ru.bmstu.iu9.personalfebus.compiler.lexer.token.IdentifierToken;
-import ru.bmstu.iu9.personalfebus.compiler.lexer.token.KeywordToken;
-import ru.bmstu.iu9.personalfebus.compiler.lexer.token.OperatorToken;
-import ru.bmstu.iu9.personalfebus.compiler.lexer.token.Token;
+import ru.bmstu.iu9.personalfebus.compiler.lexer.token.*;
 import ru.bmstu.iu9.personalfebus.compiler.parser.exception.BadSyntaxException;
 import ru.bmstu.iu9.personalfebus.compiler.parser.exception.SyntaxException;
 
@@ -16,6 +13,7 @@ import java.util.ArrayList;
 
 public class Parser implements IParser {
     private final ILexer lexer;
+    private Token currentToken;
 
     public Parser(ILexer lexer) {
         this.lexer = lexer;
@@ -26,33 +24,31 @@ public class Parser implements IParser {
         return parseProgram();
     }
 
-    private Token assertNextToken(String type) throws SyntaxException {
-        if (lexer.hasTokens()) {
-            Token nextToken = lexer.nextToken();
-            if (!nextToken.getType().equals(type)) {
-                throw new SyntaxException(type, nextToken.getType());
-            }
+    private void nextToken() {
+        if (lexer.hasTokens()) currentToken = lexer.nextToken();
+        else currentToken = new EofToken();
+    }
 
-            return nextToken;
-        } else {
-            throw new SyntaxException(type, null);
+    private void assertTokenType(String type) throws SyntaxException {
+        if (!currentToken.getType().equalsIgnoreCase(type)) {
+            throw new SyntaxException(type, currentToken.getType());
         }
     }
 
-    private Token assertBody(Token token, String expected) throws SyntaxException {
-        if (token.getBody().equalsIgnoreCase(expected)) {
-            return token;
-        } else throw new SyntaxException(expected, token.getBody());
+    private void assertTokenBody(String body) throws SyntaxException {
+        if (!currentToken.getBody().equalsIgnoreCase(body)) {
+            throw new SyntaxException(body, currentToken.getBody());
+        }
     }
 
-    private AstProgram parseProgram() {
+    private AstProgram parseProgram() throws SyntaxException, BadSyntaxException {
         AstProgram program = new AstProgram();
 
         for (;;) {
             AstFunction function = parseFunction();
             program.addFunction(function);
 
-            if (!lexer.hasTokens()) { //посмотреть eof
+            if (currentToken.getType().equalsIgnoreCase(EofToken.TYPE)) { //посмотреть eof
                 break;
             }
         }
@@ -61,16 +57,13 @@ public class Parser implements IParser {
     }
 
     private AstFunction parseFunction() throws SyntaxException, BadSyntaxException {
-        if (!lexer.hasTokens()) {
-            throw new SyntaxException(KeywordToken.TYPE, null);
-        }
+        nextToken();
+        assertTokenType(KeywordToken.TYPE);
 
-        Token token = assertNextToken(KeywordToken.TYPE);
-
-        if (token.getBody().equalsIgnoreCase("func")) {
+        if (currentToken.getBody().equalsIgnoreCase("func")) {
             //function
             AstFunctionHeader header = parseFunctionHeader();
-        } else if (token.getBody().equalsIgnoreCase("proc")) {
+        } else if (currentToken.getBody().equalsIgnoreCase("proc")) {
             //procedure
             AstFunctionHeader header = parseProcedureHeader();
         } else throw new BadSyntaxException("Bad syntax in function header: expected <func> or <proc> or <main>");
@@ -79,16 +72,54 @@ public class Parser implements IParser {
     }
 
     private AstFunctionHeader parseFunctionHeader() throws SyntaxException {
-        Token name = assertNextToken(IdentifierToken.TYPE);
-        assertBody(assertNextToken(OperatorToken.TYPE), "(");
+        nextToken();
+        assertTokenType(IdentifierToken.TYPE);
+        Token name = currentToken;
 
+        nextToken();
+        assertTokenType(OperatorToken.TYPE);
+        assertTokenBody("(");
+
+        AstFunctionHeader header = new AstFunctionHeader(name.getBody());
+
+        while (currentToken.getType().equalsIgnoreCase(EofToken.TYPE)) {
+            nextToken();
+
+            if (currentToken.getType().equalsIgnoreCase(OperatorToken.TYPE)
+                    && currentToken.getBody().equalsIgnoreCase(")")) {
+                break;
+            }
+
+            header.addVariable(parseIdentExpr());
+        }
     }
 
     private AstFunctionHeader parseProcedureHeader() {
 
     }
 
-    private ArrayList<AstIdentExpr> parseHeaderVariables() {
+    private
 
+    private AstIdentExpr parseIdentExpr() throws SyntaxException {
+        assertTokenType(IdentifierToken.TYPE);
+        AstIdentExpr expr = new AstIdentExpr(currentToken.getBody());
+        nextToken();
+
+        while (currentToken.getType().equalsIgnoreCase(EofToken.TYPE)) {
+            if (currentToken.getType().equalsIgnoreCase(OperatorToken.TYPE)
+                    && currentToken.getBody().equalsIgnoreCase("[")) {
+                nextToken();
+                assertTokenType(NumberToken.TYPE);
+                expr.addTail(Integer.parseInt(currentToken.getBody()));
+
+                nextToken();
+                assertTokenType(NumberToken.TYPE);
+                assertTokenBody("]");
+
+                nextToken();
+            } else break;
+        }
+
+        return expr;
     }
 }

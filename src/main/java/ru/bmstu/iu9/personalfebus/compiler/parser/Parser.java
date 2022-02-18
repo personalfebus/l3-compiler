@@ -4,7 +4,9 @@ import ru.bmstu.iu9.personalfebus.compiler.ast.AstFunction;
 import ru.bmstu.iu9.personalfebus.compiler.ast.AstFunctionBody;
 import ru.bmstu.iu9.personalfebus.compiler.ast.AstFunctionHeader;
 import ru.bmstu.iu9.personalfebus.compiler.ast.AstProgram;
+import ru.bmstu.iu9.personalfebus.compiler.ast.operation.AstFunctionCallOperation;
 import ru.bmstu.iu9.personalfebus.compiler.ast.operation.AstOperation;
+import ru.bmstu.iu9.personalfebus.compiler.ast.operation.AstVariableInitialization;
 import ru.bmstu.iu9.personalfebus.compiler.ast.value.AstIdentExpr;
 import ru.bmstu.iu9.personalfebus.compiler.ast.value.RValue;
 import ru.bmstu.iu9.personalfebus.compiler.ast.variable.AstType;
@@ -22,6 +24,7 @@ import java.util.Set;
 public class Parser implements IParser {
     private final ILexer lexer;
     private Token currentToken;
+    private Token backlog;
 
     public Parser(ILexer lexer) {
         this.lexer = lexer;
@@ -33,7 +36,11 @@ public class Parser implements IParser {
     }
 
     private void nextToken() {
-        if (lexer.hasTokens()) currentToken = lexer.nextToken();
+        if (backlog != null) {
+            currentToken = backlog;
+            backlog = null;
+        }
+        else if (lexer.hasTokens()) currentToken = lexer.nextToken();
         else currentToken = new EofToken();
     }
 
@@ -71,16 +78,16 @@ public class Parser implements IParser {
         if (currentToken.getBody().equalsIgnoreCase("func")) {
             //function
             AstFunctionHeader header = parseFunctionHeader(false);
+            AstFunctionBody body = parseFunctionBody(false);
+            return new AstFunction(header, body);
         } else if (currentToken.getBody().equalsIgnoreCase("proc")) {
             //procedure
             AstFunctionHeader header = parseFunctionHeader(true);
+            AstFunctionBody body = parseFunctionBody(true);
+            return new AstFunction(header, body);
         } else {
             throw new BadSyntaxException("Bad syntax in function header: expected func or proc or main");
         }
-
-
-
-        return null; //TODO
     }
 
     private AstFunctionBody parseFunctionBody(boolean isProcedure) throws SyntaxException {
@@ -103,7 +110,29 @@ public class Parser implements IParser {
         return body;
     }
 
-    private AstOperation parseOperation() {
+    private AstOperation parseOperation() throws SyntaxException, BadSyntaxException {
+        if (currentToken.getType().equalsIgnoreCase(IdentifierToken.TYPE)) {
+            // variable_definition | variable_assigment | function_call
+            Token t = currentToken;
+            nextToken();
+            if (currentToken.getType().equalsIgnoreCase(OperatorToken.TYPE)
+                    && currentToken.getBody().equalsIgnoreCase("(")) {
+                backlog = currentToken;
+                currentToken = t;
+                return parseFunctionCall(); //todo check currentToken
+            } else {
+                backlog = currentToken;
+                currentToken = t;
+                return new AstVariableInitialization(parseVariableDefinitionOrInitialization()); //todo check currentToken
+            }
+        } else if (currentToken.getType().equalsIgnoreCase(KeywordToken.TYPE)) {
+            //conditional_block | while_block | for_block | repeat_block | exception_block.
+        } else {
+            //throw?
+        }
+    }
+
+    private AstFunctionCallOperation parseFunctionCall() {
 
     }
 
@@ -163,7 +192,7 @@ public class Parser implements IParser {
                 throw new BadSyntaxException("Bad syntax in variable definition: expected , or ->");
             }
 
-            set.add(new AstVariable(name));
+            set.add(new AstVariable(new AstIdentExpr(name)));
             nextToken();
         }
         nextToken();
@@ -177,11 +206,10 @@ public class Parser implements IParser {
     }
 
     private Set<AstVariable> parseVariableDefinitionOrInitialization() throws SyntaxException, BadSyntaxException {
-        //no initialization
+        //initialization or definition
         Set<AstVariable> set = new HashSet<>();
         for (;;) {
-            assertTokenType(IdentifierToken.TYPE);
-            String name = currentToken.getBody();
+            AstIdentExpr expr = parseIdentExpr();
             nextToken();
 
             assertTokenType(OperatorToken.TYPE);
@@ -191,14 +219,14 @@ public class Parser implements IParser {
                 //initialization
                 nextToken();
                 RValue rValue = parseRValue();
-                set.add(new AstVariable(name, rValue));
+                set.add(new AstVariable(expr, rValue));
                 nextToken();
                 continue;
             } else if (!currentToken.getBody().equalsIgnoreCase(",")) {
                 throw new BadSyntaxException("Bad syntax in variable definition: expected , or ->");
             }
 
-            set.add(new AstVariable(name));
+            set.add(new AstVariable(expr));
             nextToken();
         }
         nextToken();

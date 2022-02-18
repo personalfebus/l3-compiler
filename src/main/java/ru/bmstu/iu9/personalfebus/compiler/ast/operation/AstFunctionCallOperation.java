@@ -4,7 +4,7 @@ import ru.bmstu.iu9.personalfebus.compiler.ast.value.AstArithExprPart;
 import ru.bmstu.iu9.personalfebus.compiler.ast.value.RValue;
 
 //todo
-public class AstFunctionCallOperation implements RValue, AstArithExprPart {
+public class AstFunctionCallOperation implements RValue, AstArithExprPart, AstOperation {
 
     private static String TYPE = "FUNCTION_CALL";
 

@@ -12,9 +12,9 @@ function_parameters_sections := variable_definition <;> function_parameters_sect
 
 variable_definition := variable_definition_step <->> type.
 variable_definition_step := variable_definition_simple | variable_definition_complex.
-variable_definition_simple := <ident> <,> variable_definition_step | <ident>.
-variable_definition_complex := <ident> <=> rvalue_expr <,> variable_definition_step
-                                | <ident> <=> rvalue_expr.
+variable_definition_simple := ident_expr <,> variable_definition_step | ident_expr.
+variable_definition_complex := ident_expr <=> rvalue_expr <,> variable_definition_step
+                                | ident_expr <=> rvalue_expr.
 
 function_body := operations <endfunc>.
 procedure_body := operations <endproc> | <endproc>.

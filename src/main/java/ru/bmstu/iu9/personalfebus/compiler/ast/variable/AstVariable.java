@@ -1,18 +1,19 @@
 package ru.bmstu.iu9.personalfebus.compiler.ast.variable;
 
+import ru.bmstu.iu9.personalfebus.compiler.ast.value.AstIdentExpr;
 import ru.bmstu.iu9.personalfebus.compiler.ast.value.RValue;
 
 public class AstVariable {
-    private final String name;
+    private final AstIdentExpr expr;
     private AstType type;
     private RValue rValue;
 
-    public AstVariable(String name) {
-        this.name = name;
+    public AstVariable(AstIdentExpr expr) {
+        this.expr = expr;
     }
 
-    public AstVariable(String name, RValue rValue) {
-        this.name = name;
+    public AstVariable(AstIdentExpr expr, RValue rValue) {
+        this.expr = expr;
         this.rValue = rValue;
     }
 
@@ -20,8 +21,8 @@ public class AstVariable {
         return rValue != null;
     }
 
-    public String getName() {
-        return name;
+    public AstIdentExpr getExpr() {
+        return expr;
     }
 
     public AstType getType() {

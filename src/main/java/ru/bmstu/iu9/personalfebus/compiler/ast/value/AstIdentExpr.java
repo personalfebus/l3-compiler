@@ -2,7 +2,7 @@ package ru.bmstu.iu9.personalfebus.compiler.ast.value;
 
 import java.util.ArrayList;
 
-public class AstIdentExpr implements RValue, AstArithExprPart {
+public class AstIdentExpr implements RValue {
     private String name;
     private ArrayList<Integer> tail;
 
@@ -11,6 +11,14 @@ public class AstIdentExpr implements RValue, AstArithExprPart {
     public AstIdentExpr(String name) {
         this.name = name;
         this.tail = new ArrayList<>();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public ArrayList<Integer> getTail() {
+        return tail;
     }
 
     public void addTail(int a) {

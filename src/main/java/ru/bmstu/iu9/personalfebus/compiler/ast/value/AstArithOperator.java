@@ -71,4 +71,9 @@ public class AstArithOperator implements AstArithExprPart {
     public String getType() {
         return TYPE;
     }
+
+    @Override
+    public String getConstantType() {
+        return null;
+    }
 }

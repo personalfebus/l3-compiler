@@ -8,7 +8,7 @@ import java.util.Deque;
 import java.util.List;
 
 //возможно стоит добавить проверку типов
-public class AstArithExpr implements RValue, AstArithExprPart {
+public class AstArithExpr implements RValue {
     /**
      * выражение из операторов и значений в обратной польской нотации
      */

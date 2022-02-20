@@ -13,4 +13,9 @@ public class AstArithExprConstant implements AstArithExprPart, RValue {
     public String getType() {
         return TYPE;
     }
+
+    @Override
+    public String getConstantType() {
+        return "CONSTANT";
+    }
 }

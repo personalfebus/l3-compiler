@@ -16,4 +16,9 @@ public class AstArithExprSeparator implements AstArithExprPart {
     public String getType() {
         return type;
     }
+
+    @Override
+    public String getConstantType() {
+        return null;
+    }
 }

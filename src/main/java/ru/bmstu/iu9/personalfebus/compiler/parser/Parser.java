@@ -7,13 +7,14 @@ import ru.bmstu.iu9.personalfebus.compiler.ast.AstProgram;
 import ru.bmstu.iu9.personalfebus.compiler.ast.operation.AstFunctionCallOperation;
 import ru.bmstu.iu9.personalfebus.compiler.ast.operation.AstOperation;
 import ru.bmstu.iu9.personalfebus.compiler.ast.operation.AstVariableInitialization;
-import ru.bmstu.iu9.personalfebus.compiler.ast.value.AstIdentExpr;
-import ru.bmstu.iu9.personalfebus.compiler.ast.value.RValue;
+import ru.bmstu.iu9.personalfebus.compiler.ast.value.*;
 import ru.bmstu.iu9.personalfebus.compiler.ast.variable.AstType;
 import ru.bmstu.iu9.personalfebus.compiler.ast.variable.AstVariable;
 import ru.bmstu.iu9.personalfebus.compiler.lexer.ILexer;
 import ru.bmstu.iu9.personalfebus.compiler.lexer.token.*;
+import ru.bmstu.iu9.personalfebus.compiler.parser.exception.BadArithmeticExpressionException;
 import ru.bmstu.iu9.personalfebus.compiler.parser.exception.BadSyntaxException;
+import ru.bmstu.iu9.personalfebus.compiler.parser.exception.NotAnArithmeticExpressionError;
 import ru.bmstu.iu9.personalfebus.compiler.parser.exception.SyntaxException;
 
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ public class Parser implements IParser {
     }
 
     @Override
-    public AstProgram parse() {
+    public AstProgram parse() throws SyntaxException, BadArithmeticExpressionException, BadSyntaxException, NotAnArithmeticExpressionError {
         return parseProgram();
     }
 
@@ -56,7 +57,7 @@ public class Parser implements IParser {
         }
     }
 
-    private AstProgram parseProgram() throws SyntaxException, BadSyntaxException {
+    private AstProgram parseProgram() throws SyntaxException, BadSyntaxException, BadArithmeticExpressionException, NotAnArithmeticExpressionError {
         AstProgram program = new AstProgram();
 
         for (;;) {
@@ -71,7 +72,7 @@ public class Parser implements IParser {
         return program;
     }
 
-    private AstFunction parseFunction() throws SyntaxException, BadSyntaxException {
+    private AstFunction parseFunction() throws SyntaxException, BadSyntaxException, BadArithmeticExpressionException, NotAnArithmeticExpressionError {
         nextToken();
         assertTokenType(KeywordToken.TYPE);
 
@@ -90,8 +91,17 @@ public class Parser implements IParser {
         }
     }
 
-    private AstFunctionBody parseFunctionBody(boolean isProcedure) throws SyntaxException {
+    private AstFunctionBody parseFunctionBody(boolean isProcedure) throws SyntaxException, BadSyntaxException, BadArithmeticExpressionException, NotAnArithmeticExpressionError {
         AstFunctionBody body = new AstFunctionBody();
+
+        //empty function body case
+        if (currentToken.getType().equalsIgnoreCase(KeywordToken.TYPE)
+                && ((isProcedure && currentToken.getBody().equalsIgnoreCase("endproc"))
+                || (!isProcedure && currentToken.getBody().equalsIgnoreCase("endfunc")))) {
+            nextToken();
+            return body;
+        }
+
         for (;;) {
             body.addOperation(parseOperation());
             //assuming parseOperation has nextToken in the end
@@ -99,7 +109,8 @@ public class Parser implements IParser {
             if (currentToken.getType().equalsIgnoreCase(KeywordToken.TYPE)
                     && ((isProcedure && currentToken.getBody().equalsIgnoreCase("endproc"))
                         || (!isProcedure && currentToken.getBody().equalsIgnoreCase("endfunc")))) {
-                break; //nextToken?? todo
+                nextToken();
+                break;
             }
 
             assertTokenType(OperatorToken.TYPE);
@@ -110,7 +121,7 @@ public class Parser implements IParser {
         return body;
     }
 
-    private AstOperation parseOperation() throws SyntaxException, BadSyntaxException {
+    private AstOperation parseOperation() throws SyntaxException, BadSyntaxException, BadArithmeticExpressionException, NotAnArithmeticExpressionError {
         if (currentToken.getType().equalsIgnoreCase(IdentifierToken.TYPE)) {
             // variable_definition | variable_assigment | function_call
             Token t = currentToken;
@@ -119,21 +130,44 @@ public class Parser implements IParser {
                     && currentToken.getBody().equalsIgnoreCase("(")) {
                 backlog = currentToken;
                 currentToken = t;
-                return parseFunctionCall(); //todo check currentToken
+                return parseFunctionCall();
             } else {
                 backlog = currentToken;
                 currentToken = t;
-                return new AstVariableInitialization(parseVariableDefinitionOrInitialization()); //todo check currentToken
+                return new AstVariableInitialization(parseVariableDefinitionOrInitialization());
             }
         } else if (currentToken.getType().equalsIgnoreCase(KeywordToken.TYPE)) {
-            //conditional_block | while_block | for_block | repeat_block | exception_block.
+            //conditional_block | while_block | for_block | repeat_block | exception_block. todo
+            return null;
         } else {
-            //throw?
+            //throw? todo
+            return null;
         }
     }
 
-    private AstFunctionCallOperation parseFunctionCall() {
+    private AstFunctionCallOperation parseFunctionCall() throws SyntaxException, BadArithmeticExpressionException, BadSyntaxException, NotAnArithmeticExpressionError {
+        assertTokenType(IdentifierToken.TYPE);
+        Token name = currentToken;
+        nextToken();
 
+        assertTokenType(OperatorToken.TYPE);
+        assertTokenBody("(");
+
+        AstFunctionCallOperation functionCallOperation = new AstFunctionCallOperation(name.getBody());
+
+        for (;;) {
+            nextToken();
+
+            if (currentToken.getType().equalsIgnoreCase(OperatorToken.TYPE)
+                    && currentToken.getBody().equalsIgnoreCase(")")) {
+                nextToken();
+                break;
+            }
+
+            functionCallOperation.addArgument(parseRValue());
+        }
+
+        return functionCallOperation;
     }
 
     private AstFunctionHeader parseFunctionHeader(boolean isProcedure) throws SyntaxException, BadSyntaxException {
@@ -205,7 +239,7 @@ public class Parser implements IParser {
         return set;
     }
 
-    private Set<AstVariable> parseVariableDefinitionOrInitialization() throws SyntaxException, BadSyntaxException {
+    private Set<AstVariable> parseVariableDefinitionOrInitialization() throws SyntaxException, BadSyntaxException, BadArithmeticExpressionException, NotAnArithmeticExpressionError {
         //initialization or definition
         Set<AstVariable> set = new HashSet<>();
         for (;;) {
@@ -270,8 +304,102 @@ public class Parser implements IParser {
         }
     }
 
-    RValue parseRValue() {
-        return null; //todo
+    //todo error coordinates ?
+
+    RValue parseRValue() throws BadSyntaxException, BadArithmeticExpressionException, SyntaxException, NotAnArithmeticExpressionError {
+        AstArithExpr expr = new AstArithExpr();
+        parseArithExpr(expr);
+        return expr;
+    }
+
+    private void parseArithExpr(AstArithExpr arithExpr) throws BadSyntaxException, BadArithmeticExpressionException, SyntaxException, NotAnArithmeticExpressionError {
+        if (currentToken.getType().equalsIgnoreCase(OperatorToken.TYPE)
+                && currentToken.getBody().equalsIgnoreCase("-")) {
+            arithExpr.addPart(new AstArithOperator('-', 1));
+            nextToken();
+        }
+        parseArithExprTail(arithExpr);
+    }
+
+    private void parseArithExprTail(AstArithExpr arithExpr) throws BadArithmeticExpressionException, BadSyntaxException, SyntaxException, NotAnArithmeticExpressionError {
+        if (currentToken.getType().equalsIgnoreCase(StringToken.TYPE)) {
+            //string
+            AstArithExprConstant constant = new AstArithExprConstant(currentToken.getBody());
+            arithExpr.addPart(constant);
+            nextToken();
+        } else if (currentToken.getType().equalsIgnoreCase(SymbolToken.TYPE)) {
+            //symbol
+            AstArithExprConstant constant = new AstArithExprConstant(currentToken.getBody());
+            arithExpr.addPart(constant);
+            nextToken();
+        } else if (currentToken.getType().equalsIgnoreCase(KeywordToken.TYPE)) {
+            if (currentToken.getBody().equalsIgnoreCase("ff")
+                    || currentToken.getBody().equalsIgnoreCase("tt")) {
+                //boolean constants
+                AstArithExprConstant constant = new AstArithExprConstant(currentToken.getBody());
+                arithExpr.addPart(constant);
+                nextToken();
+            } else throw new BadSyntaxException("Syntax error: unexpected keyword token");
+        } else if (currentToken.getType().equalsIgnoreCase(IdentifierToken.TYPE)) {
+            //ident_expr or function_call
+            Token t = currentToken;
+            nextToken();
+            if (currentToken.getType().equalsIgnoreCase(OperatorToken.TYPE)
+                    && currentToken.getBody().equalsIgnoreCase("(")) {
+                backlog = currentToken;
+                currentToken = t;
+                AstFunctionCallOperation call = parseFunctionCall();
+                AstArithExprFuncConstant constant = new AstArithExprFuncConstant(call.getName(), call.getArguments());
+                arithExpr.addPart(constant);
+            } else {
+                backlog = currentToken;
+                currentToken = t;
+                AstIdentExpr expr = parseIdentExpr();
+                AstArithExprIdentConstant constant = new AstArithExprIdentConstant(expr.getName(), expr.getTail());
+                arithExpr.addPart(constant);
+            }
+        } else if (currentToken.getType().equalsIgnoreCase(OperatorToken.TYPE)) {
+            if (currentToken.getBody().equalsIgnoreCase("(")) {
+                // <(> arith_expr <)>
+                arithExpr.addPart(new AstArithExprSeparator("SEPARATOR_OPEN"));
+                nextToken();
+                parseArithExpr(arithExpr);
+                assertTokenType(OperatorToken.TYPE);
+                assertTokenBody(")");
+                arithExpr.addPart(new AstArithExprSeparator("SEPARATOR_CLOSE"));
+                nextToken();
+            } else if (currentToken.getBody().equalsIgnoreCase(";")) {
+                throw new NotAnArithmeticExpressionError();
+            } else throw new BadSyntaxException("Syntax error: unexpected operator token");
+        }
+
+        parseRValueTail(arithExpr);
+    }
+
+    private void parseRValueTail(AstArithExpr arithExpr) throws BadArithmeticExpressionException, SyntaxException, BadSyntaxException, NotAnArithmeticExpressionError {
+        if (currentToken.getType().equalsIgnoreCase(OperatorToken.TYPE)) {
+            //binary op <^> | </> | <%> | <+> | <->.
+            if (currentToken.getBody().equalsIgnoreCase("^")) {
+                arithExpr.addPart(new AstArithOperator('^', 2));
+            } else if (currentToken.getBody().equalsIgnoreCase("/")) {
+                arithExpr.addPart(new AstArithOperator('/', 2));
+            } else if (currentToken.getBody().equalsIgnoreCase("%")) {
+                arithExpr.addPart(new AstArithOperator('%', 2));
+            } else if (currentToken.getBody().equalsIgnoreCase("+")) {
+                arithExpr.addPart(new AstArithOperator('+', 2));
+            } else if (currentToken.getBody().equalsIgnoreCase("-")) {
+                arithExpr.addPart(new AstArithOperator('-', 2));
+            } else throw new BadSyntaxException("Syntax error: unexpected operator token");
+
+            nextToken();
+            parseArithExpr(arithExpr);
+        } else {
+            try {
+                parseArithExpr(arithExpr);
+            } catch (NotAnArithmeticExpressionError er) {
+                //end of arith expr = good
+            }
+        }
     }
 
     private AstIdentExpr parseIdentExpr() throws SyntaxException {
@@ -279,7 +407,7 @@ public class Parser implements IParser {
         AstIdentExpr expr = new AstIdentExpr(currentToken.getBody());
         nextToken();
 
-        while (currentToken.getType().equalsIgnoreCase(EofToken.TYPE)) {
+        for (;;) {
             if (currentToken.getType().equalsIgnoreCase(OperatorToken.TYPE)
                     && currentToken.getBody().equalsIgnoreCase("[")) {
                 nextToken();

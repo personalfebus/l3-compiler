@@ -1,7 +1,9 @@
 package ru.bmstu.iu9.personalfebus.compiler;
 
+import ru.bmstu.iu9.personalfebus.compiler.ast.AstProgram;
 import ru.bmstu.iu9.personalfebus.compiler.lexer.Lexer;
 import ru.bmstu.iu9.personalfebus.compiler.lexer.token.Token;
+import ru.bmstu.iu9.personalfebus.compiler.parser.Parser;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,13 +24,21 @@ public class LanguageInput {
         }
 
         Lexer lexer = new Lexer(input.toString());
+        Parser parser = new Parser(lexer);
 
-        while (lexer.hasTokens()) {
-            Token token = lexer.nextToken();
-            System.out.println("------");
-            System.out.println(token.getType());
-            System.out.println(token.getBody());
-            //System.out.println("------");
+        try {
+            AstProgram program = parser.parse();
+            //code gen and semantics
+        } catch (Exception ex) {
+            System.out.println(ex.toString());
         }
+
+//        while (lexer.hasTokens()) {
+//            Token token = lexer.nextToken();
+//            System.out.println("------");
+//            System.out.println(token.getType());
+//            System.out.println(token.getBody());
+//            //System.out.println("------");
+//        }
     }
 }

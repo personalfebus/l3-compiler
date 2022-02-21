@@ -16,4 +16,14 @@ public class EofToken implements Token {
     public String getBody() {
         return null;
     }
+
+    @Override
+    public int getLine() {
+        return 0;
+    }
+
+    @Override
+    public int getPosition() {
+        return 0;
+    }
 }

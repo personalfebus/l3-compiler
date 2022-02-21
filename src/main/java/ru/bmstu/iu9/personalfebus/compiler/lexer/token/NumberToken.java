@@ -70,6 +70,16 @@ public class NumberToken implements Token {
         return String.valueOf(number);
     }
 
+    @Override
+    public int getLine() {
+        return line;
+    }
+
+    @Override
+    public int getPosition() {
+        return position;
+    }
+
     public int getNumber() {
         return number;
     }

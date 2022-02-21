@@ -3,6 +3,7 @@ package ru.bmstu.iu9.personalfebus.compiler.ast.operation;
 import ru.bmstu.iu9.personalfebus.compiler.ast.value.AstArithExprPart;
 import ru.bmstu.iu9.personalfebus.compiler.ast.value.RValue;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AstFunctionCallOperation implements RValue, AstOperation {
@@ -13,6 +14,7 @@ public class AstFunctionCallOperation implements RValue, AstOperation {
 
     public AstFunctionCallOperation(String name) {
         this.name = name;
+        arguments = new ArrayList<>();
     }
 
     public void addArgument(RValue value) {

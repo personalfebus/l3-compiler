@@ -44,4 +44,14 @@ public class IdentifierToken implements Token {
     public String getBody() {
         return body;
     }
+
+    @Override
+    public int getLine() {
+        return line;
+    }
+
+    @Override
+    public int getPosition() {
+        return position;
+    }
 }

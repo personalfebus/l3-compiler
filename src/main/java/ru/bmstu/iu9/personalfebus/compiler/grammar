@@ -28,11 +28,12 @@ lvalue := ident_expr.
 ident_expr := <ident> | <ident> ident_expr_tail.
 ident_expr_tail := <[> <number> <]> ident_expr_tail | <[> <number> <]>.
 
-rvalue := arithmetic_expr.
+rvalue := arithmetic_expr | <[> type_init <]>.
+type_init :=  <[> type_init <]> | type rvalue.
 arithmetic_expr := unary_number_operator arithmetic_expr_tail | arithmetic_expr_tail.
-arithmetic_expr_tail := ident_expr rvalue_tail | <symbol> rvalue_tail | <string> rvalue_tail
-                                | <boolean_value> rvalue_tail | function_call rvalue_tail
-                                | <(> arithmetic_expr <)>.
+arithmetic_expr_tail := ident_expr rvalue_tail | <symbol> rvalue_tail | <number> rvalue_tail
+                                | <string> rvalue_tail | <boolean_value> rvalue_tail
+                                | function_call rvalue_tail | <(> arithmetic_expr <)>.
 rvalue_tail := binary_number_operator arithmetic_expr | arithmetic_expr_tail |.
 
 unary_number_operator := <->.

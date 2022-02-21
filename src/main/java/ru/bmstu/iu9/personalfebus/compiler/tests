@@ -3,6 +3,15 @@
 func SumVectors
     (A, B -> [int]) -> [int]
     size = length(A) -> int;
+    C = [int size] -> [int];
+    z = 2, x = 3, y = 0 -> int;
+    y = z + x % y;
+    SumVectors = C
+endfunc
+
+func SumVectors
+    (A, B -> [int]) -> [int]
+    size = length(A) -> int;
     check size = length(B);
     C = [int size] -> [int];
     for i = 0 -> int to size - 1 do
@@ -14,3 +23,10 @@ endfunc
 func main([[char]] args) -> int
     main = 0
 endfunc
+
+else if (currentToken.getType().equalsIgnoreCase(KeywordToken.TYPE)
+                    && (currentToken.getBody().equalsIgnoreCase("endfunc")
+                        || currentToken.getBody().equalsIgnoreCase("endproc"))) {
+                System.out.println("fffHUH?");
+                throw new NotAnArithmeticExpressionError();
+            }

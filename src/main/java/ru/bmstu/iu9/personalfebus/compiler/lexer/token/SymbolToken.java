@@ -88,4 +88,14 @@ public class SymbolToken implements Token {
     public String getBody() {
         return String.valueOf(body);
     }
+
+    @Override
+    public int getLine() {
+        return line;
+    }
+
+    @Override
+    public int getPosition() {
+        return position;
+    }
 }

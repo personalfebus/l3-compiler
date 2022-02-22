@@ -51,7 +51,7 @@ binary_cmp_operator := <==> | <!=> | <<> | <>> | <<=> | <>=>.
 
 while_block := <while> condition <do> operations <endwhile>.
 
-for_block := <for> for_block_init <to> rvalue step <number> <do> operations <endfor>.
+for_block := <for> for_block_init <to> rvalue <step> rvalue <do> operations <endfor>.
 for_block_init := <ident> <=> <number> | <ident> <=> <symbol>
                     | <ident> <=> <number> <->> <int>
                     | <ident> <=> <symbol> <->> <char>.

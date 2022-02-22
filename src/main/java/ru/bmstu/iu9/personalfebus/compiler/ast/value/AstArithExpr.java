@@ -7,8 +7,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-//возможно стоит добавить проверку типов
-//todo плохо переводит в польскую нотацию
+//возможно стоит добавить проверку типов прямо здесь (не надо)
 public class AstArithExpr implements RValue {
     /**
      * выражение из операторов и значений в обратной польской нотации
@@ -60,6 +59,13 @@ public class AstArithExpr implements RValue {
             stack.pop();
         } else {
             parts.add(part);
+        }
+    }
+
+    public void emptyStack() throws BadArithmeticExpressionException {
+        while (!stack.isEmpty()) {
+            if (!stack.peekLast().getType().equals("OPERATOR")) throw new BadArithmeticExpressionException();
+            else parts.add(stack.pop());
         }
     }
 

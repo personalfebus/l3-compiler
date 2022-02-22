@@ -8,6 +8,8 @@ import ru.bmstu.iu9.personalfebus.compiler.ast.operation.AstFunctionCallOperatio
 import ru.bmstu.iu9.personalfebus.compiler.ast.operation.AstOperation;
 import ru.bmstu.iu9.personalfebus.compiler.ast.operation.AstVariableAssigment;
 import ru.bmstu.iu9.personalfebus.compiler.ast.operation.AstVariableInitialization;
+import ru.bmstu.iu9.personalfebus.compiler.ast.operation.block.AstForBlock;
+import ru.bmstu.iu9.personalfebus.compiler.ast.operation.block.AstWhileBlock;
 import ru.bmstu.iu9.personalfebus.compiler.ast.operation.model.InitializationOrAssigment;
 import ru.bmstu.iu9.personalfebus.compiler.ast.value.*;
 import ru.bmstu.iu9.personalfebus.compiler.ast.variable.AstType;
@@ -71,7 +73,6 @@ public class Parser implements IParser {
             }
         }
 
-        //todo не закидываю умножение в арифм выраж
         return program;
     }
 
@@ -97,7 +98,7 @@ public class Parser implements IParser {
     private AstFunctionBody parseFunctionBody(boolean isProcedure) throws SyntaxException, BadSyntaxException, BadArithmeticExpressionException, NotAnArithmeticExpressionError {
         AstFunctionBody body = new AstFunctionBody();
 
-        //todo procedure
+        //todo procedure - done?
         //empty function body case
         if (currentToken.getType().equalsIgnoreCase(KeywordToken.TYPE)
                 && ((isProcedure && currentToken.getBody().equalsIgnoreCase("endproc"))
@@ -148,12 +149,60 @@ public class Parser implements IParser {
             }
         } else if (currentToken.getType().equalsIgnoreCase(KeywordToken.TYPE)) {
             //conditional_block | while_block | for_block | repeat_block | exception_block. todo
+            if (currentToken.getBody().equalsIgnoreCase("for")) {
+                return parseFor();
+            } else if (currentToken.getBody().equalsIgnoreCase("while")) {
+                return parseWhile();
+            }
             assertTokenType(IdentifierToken.TYPE);
             throw new BadSyntaxException("TODO1");
         } else {
             //throw? todo
             throw new BadSyntaxException("Bad syntax at (" + currentToken.getLine() + "," + currentToken.getPosition() + ") in operation definition idk (" + currentToken.getBody() + ")");
         }
+    }
+
+    //todo + condition
+    private AstWhileBlock parseWhile() {
+        return null;
+    }
+
+    private AstForBlock parseFor() throws SyntaxException, BadArithmeticExpressionException, BadSyntaxException, NotAnArithmeticExpressionError {
+        InitializationOrAssigment ioa = parseVariableDefinitionOrInitialization();
+        assertTokenType(KeywordToken.TYPE);
+        assertTokenBody("to");
+        nextToken();
+        RValue to = parseRValue();
+        assertTokenType(KeywordToken.TYPE);
+        assertTokenBody("step");
+        nextToken();
+        RValue step = parseRValue();
+        assertTokenType(KeywordToken.TYPE);
+        assertTokenBody("do");
+        List<AstOperation> operations = new ArrayList<>();
+
+        if (currentToken.getType().equalsIgnoreCase(KeywordToken.TYPE)
+                && currentToken.getBody().equalsIgnoreCase("endfor")) {
+            nextToken();
+            return new AstForBlock(ioa, to, step, operations);
+        }
+
+        for (;;) {
+            operations.add(parseOperation());
+            //assuming parseOperation has nextToken in the end
+
+            if (currentToken.getType().equalsIgnoreCase(KeywordToken.TYPE)
+                    && currentToken.getBody().equalsIgnoreCase("endfor")) {
+                nextToken();
+                break;
+            }
+
+            assertTokenType(OperatorToken.TYPE);
+            assertTokenBody(";");
+            nextToken();
+        }
+
+        return new AstForBlock(ioa, to, step, operations);
     }
 
     private AstFunctionCallOperation parseFunctionCall() throws SyntaxException, BadArithmeticExpressionException, BadSyntaxException, NotAnArithmeticExpressionError {
@@ -336,7 +385,7 @@ public class Parser implements IParser {
         }
         AstArithExpr expr = new AstArithExpr();
         parseArithExpr(expr);
-
+        expr.emptyStack();
         return expr;
     }
 
@@ -460,6 +509,7 @@ public class Parser implements IParser {
             } else {
                 try {
                     parseArithExpr(arithExpr);
+                    arithExpr.addPart(new AstArithOperator('*', 2));
                     return;
                 } catch (NotAnArithmeticExpressionError er) {
                     //end of arith expr = good
@@ -473,8 +523,11 @@ public class Parser implements IParser {
         } else {
             try {
                 parseArithExpr(arithExpr);
+                arithExpr.addPart(new AstArithOperator('*', 2));
+                return;
             } catch (NotAnArithmeticExpressionError er) {
                 //end of arith expr = good
+                return;
             }
         }
     }

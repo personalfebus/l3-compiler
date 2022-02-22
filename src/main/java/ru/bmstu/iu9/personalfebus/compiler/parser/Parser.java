@@ -4,12 +4,12 @@ import ru.bmstu.iu9.personalfebus.compiler.ast.AstFunction;
 import ru.bmstu.iu9.personalfebus.compiler.ast.AstFunctionBody;
 import ru.bmstu.iu9.personalfebus.compiler.ast.AstFunctionHeader;
 import ru.bmstu.iu9.personalfebus.compiler.ast.AstProgram;
-import ru.bmstu.iu9.personalfebus.compiler.ast.operation.AstFunctionCallOperation;
-import ru.bmstu.iu9.personalfebus.compiler.ast.operation.AstOperation;
-import ru.bmstu.iu9.personalfebus.compiler.ast.operation.AstVariableAssigment;
-import ru.bmstu.iu9.personalfebus.compiler.ast.operation.AstVariableInitialization;
+import ru.bmstu.iu9.personalfebus.compiler.ast.operation.*;
+import ru.bmstu.iu9.personalfebus.compiler.ast.operation.block.AstConditionalBlock;
+import ru.bmstu.iu9.personalfebus.compiler.ast.operation.block.AstConditionalSubBlock;
 import ru.bmstu.iu9.personalfebus.compiler.ast.operation.block.AstForBlock;
 import ru.bmstu.iu9.personalfebus.compiler.ast.operation.block.AstWhileBlock;
+import ru.bmstu.iu9.personalfebus.compiler.ast.operation.condition.*;
 import ru.bmstu.iu9.personalfebus.compiler.ast.operation.model.InitializationOrAssigment;
 import ru.bmstu.iu9.personalfebus.compiler.ast.value.*;
 import ru.bmstu.iu9.personalfebus.compiler.ast.variable.AstType;
@@ -36,7 +36,7 @@ public class Parser implements IParser {
     }
 
     @Override
-    public AstProgram parse() throws SyntaxException, BadArithmeticExpressionException, BadSyntaxException, NotAnArithmeticExpressionError {
+    public AstProgram parse() throws SyntaxException, BadArithmeticExpressionException, BadSyntaxException, NotAnArithmeticExpressionError, BadConditionExpressionException {
         return parseProgram();
     }
 
@@ -61,7 +61,7 @@ public class Parser implements IParser {
         }
     }
 
-    private AstProgram parseProgram() throws SyntaxException, BadSyntaxException, BadArithmeticExpressionException, NotAnArithmeticExpressionError {
+    private AstProgram parseProgram() throws SyntaxException, BadSyntaxException, BadArithmeticExpressionException, NotAnArithmeticExpressionError, BadConditionExpressionException {
         AstProgram program = new AstProgram();
 
         for (;;) {
@@ -76,7 +76,7 @@ public class Parser implements IParser {
         return program;
     }
 
-    private AstFunction parseFunction() throws SyntaxException, BadSyntaxException, BadArithmeticExpressionException, NotAnArithmeticExpressionError {
+    private AstFunction parseFunction() throws SyntaxException, BadSyntaxException, BadArithmeticExpressionException, NotAnArithmeticExpressionError, BadConditionExpressionException {
         nextToken();
         assertTokenType(KeywordToken.TYPE);
 
@@ -95,7 +95,7 @@ public class Parser implements IParser {
         }
     }
 
-    private AstFunctionBody parseFunctionBody(boolean isProcedure) throws SyntaxException, BadSyntaxException, BadArithmeticExpressionException, NotAnArithmeticExpressionError {
+    private AstFunctionBody parseFunctionBody(boolean isProcedure) throws SyntaxException, BadSyntaxException, BadArithmeticExpressionException, NotAnArithmeticExpressionError, BadConditionExpressionException {
         AstFunctionBody body = new AstFunctionBody();
 
         //todo procedure - done?
@@ -126,7 +126,7 @@ public class Parser implements IParser {
         return body;
     }
 
-    private AstOperation parseOperation() throws SyntaxException, BadSyntaxException, BadArithmeticExpressionException, NotAnArithmeticExpressionError {
+    private AstOperation parseOperation() throws SyntaxException, BadSyntaxException, BadArithmeticExpressionException, NotAnArithmeticExpressionError, BadConditionExpressionException {
         if (currentToken.getType().equalsIgnoreCase(IdentifierToken.TYPE)) {
             // variable_definition | variable_assigment | function_call
             Token t = currentToken;
@@ -150,9 +150,14 @@ public class Parser implements IParser {
         } else if (currentToken.getType().equalsIgnoreCase(KeywordToken.TYPE)) {
             //conditional_block | while_block | for_block | repeat_block | exception_block. todo
             if (currentToken.getBody().equalsIgnoreCase("for")) {
+                nextToken();
                 return parseFor();
             } else if (currentToken.getBody().equalsIgnoreCase("while")) {
                 return parseWhile();
+            } else if (currentToken.getBody().equalsIgnoreCase("if")) {
+                nextToken();
+                AstConditionalBlock block = new AstConditionalBlock();
+                return parseIf(block);
             }
             assertTokenType(IdentifierToken.TYPE);
             throw new BadSyntaxException("TODO1");
@@ -162,12 +167,96 @@ public class Parser implements IParser {
         }
     }
 
+    //todo tests
+    private AstConditionalBlock parseIf(AstConditionalBlock block) throws BadConditionExpressionException, BadArithmeticExpressionException, SyntaxException, BadSyntaxException, NotAnArithmeticExpressionError {
+        AstCondition condition = new AstCondition();
+        parseCondition(condition);
+        condition.emptyStack();
+        assertTokenType(KeywordToken.TYPE);
+        assertTokenBody("then");
+
+        List<AstOperation> body = new ArrayList<>();
+        for (;;) {
+            body.add(parseOperation());
+            //assuming parseOperation has nextToken in the end
+
+            if (currentToken.getType().equalsIgnoreCase(KeywordToken.TYPE)) {
+                if (currentToken.getBody().equalsIgnoreCase("endif")) {
+                    block.addBlock(new AstConditionalSubBlock(condition, body));
+                    nextToken();
+                    break;
+                } else if (currentToken.getBody().equalsIgnoreCase("elseif")
+                        || currentToken.getBody().equalsIgnoreCase("else")) {
+                    block.addBlock(new AstConditionalSubBlock(condition, body));
+                    nextToken();
+                    parseIf(block);
+                    break;
+                }
+            }
+
+            assertTokenType(OperatorToken.TYPE);
+            assertTokenBody(";");
+            nextToken();
+        }
+
+        return block;
+    }
+
+    private void parseCondition(AstCondition condition) throws BadConditionExpressionException, BadArithmeticExpressionException, SyntaxException, BadSyntaxException, NotAnArithmeticExpressionError {
+        if (currentToken.getType().equalsIgnoreCase(OperatorToken.TYPE)
+                && currentToken.getBody().equalsIgnoreCase("!")) {
+            condition.addPart(new AstConditionOperator("!"));
+            nextToken();
+        }
+
+        parseBooleanValue(condition);
+        parseConditionTail(condition);
+    }
+
+    private void parseBooleanValue(AstCondition condition) throws BadConditionExpressionException, BadArithmeticExpressionException, SyntaxException, BadSyntaxException, NotAnArithmeticExpressionError {
+        if (currentToken.getType().equalsIgnoreCase(KeywordToken.TYPE)) {
+            if (currentToken.getBody().equalsIgnoreCase("ff")
+                    || currentToken.getBody().equalsIgnoreCase("tt")) {
+                //boolean constants
+                condition.addPart(new AstConditionConstant(currentToken.getBody()));
+                nextToken();
+            }
+        } else {
+            RValue left = parseRValue();
+            condition.addPart(new AstConditionConstantRValue(left));
+            assertTokenType(OperatorToken.TYPE);
+            // > < == != >= <=
+            if (currentToken.getBody().equalsIgnoreCase("<") || currentToken.getBody().equalsIgnoreCase(">")
+                || currentToken.getBody().equalsIgnoreCase("<=") || currentToken.getBody().equalsIgnoreCase(">=")
+                || currentToken.getBody().equalsIgnoreCase("==") || currentToken.getBody().equalsIgnoreCase("!=")) {
+                condition.addPart(new AstConditionOperator(currentToken.getBody()));
+                nextToken();
+                RValue right = parseRValue();
+                condition.addPart(new AstConditionConstantRValue(right));
+            } else throw new BadSyntaxException("TODO"); //TODO
+        }
+    }
+
+    private void parseConditionTail(AstCondition condition) throws BadSyntaxException, BadConditionExpressionException, BadArithmeticExpressionException, SyntaxException, NotAnArithmeticExpressionError {
+        if (currentToken.getType().equalsIgnoreCase(OperatorToken.TYPE)) {
+            if (currentToken.getBody().equalsIgnoreCase("!")
+                || currentToken.getBody().equalsIgnoreCase("&&")
+                || currentToken.getBody().equalsIgnoreCase("||")
+                || currentToken.getBody().equalsIgnoreCase("^^")) {
+                // ! && ^^ ||
+                condition.addPart(new AstConditionOperator(currentToken.getBody()));
+                nextToken();
+                parseCondition(condition);
+            }
+        }
+    }
+
     //todo + condition
     private AstWhileBlock parseWhile() {
         return null;
     }
 
-    private AstForBlock parseFor() throws SyntaxException, BadArithmeticExpressionException, BadSyntaxException, NotAnArithmeticExpressionError {
+    private AstForBlock parseFor() throws SyntaxException, BadArithmeticExpressionException, BadSyntaxException, NotAnArithmeticExpressionError, BadConditionExpressionException {
         InitializationOrAssigment ioa = parseVariableDefinitionOrInitialization();
         assertTokenType(KeywordToken.TYPE);
         assertTokenBody("to");

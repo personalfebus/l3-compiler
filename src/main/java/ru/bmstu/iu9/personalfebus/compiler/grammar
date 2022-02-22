@@ -43,8 +43,11 @@ function_call_parameters := rvalue <,> function_call_parameters | rvalue.
 
 conditional_block := <if> condition <then> operations conditional_block_tail <endif>.
 conditional_block_tail := <elseif> condition <then> operations conditional_block_tail | <else> operations.
-condition := unary_bool_operator condition | condition binary_bool_operator condition
-            | rvalue_expr binary_cmp_operator rvalue | <boolean_value>.
+
+condition := unary_bool_operator boolean_value condition_tail | boolean_value condition_tail.
+boolean_value := <boolean> | rvalue binary_cmp_operator rvalue.
+condition_tail := binary_bool_operator condition | .
+
 unary_bool_operator := <!>.
 binary_bool_operator := <&&> | <||> | <^^>.
 binary_cmp_operator := <==> | <!=> | <<> | <>> | <<=> | <>=>.

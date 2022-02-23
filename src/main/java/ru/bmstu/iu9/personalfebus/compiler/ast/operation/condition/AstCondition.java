@@ -35,7 +35,7 @@ public class AstCondition {
                 }
                 stack.push(part);
             } else {
-                //WTF TODO
+                //WTF
                 throw new BadConditionExpressionException();
             }
         } else if (part.getType().equals("CONDITION")) {

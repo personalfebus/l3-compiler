@@ -3,9 +3,6 @@ package ru.bmstu.iu9.personalfebus.compiler.lexer;
 import ru.bmstu.iu9.personalfebus.compiler.lexer.token.*;
 import ru.bmstu.iu9.personalfebus.compiler.lexer.token.exception.*;
 
-import java.nio.charset.StandardCharsets;
-
-//TODO STRING
 public class Lexer implements ILexer {
     private final String input;
     private int position;
@@ -88,7 +85,7 @@ public class Lexer implements ILexer {
                 moveForward();
                 return;
             } else {
-                //TODO other symbols ???
+                //other symbols ???
                 moveForward();
                 throw new UnexpectedSymbolError(line, linePosition);
             }
@@ -157,7 +154,7 @@ public class Lexer implements ILexer {
     }
 
     private boolean isKeyword(String word) {
-        //TODO decide case insensitive or sensitive
+        //case insensitive
         return word.equalsIgnoreCase("bool") ||
                 word.equalsIgnoreCase("char") ||
                 word.equalsIgnoreCase("check") ||

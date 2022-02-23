@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class AstIdentExpr implements RValue {
     private String name;
-    private ArrayList<Integer> tail;
+    private ArrayList<String> tail;
 
     private static String TYPE = "IDENTIFIER";
 
@@ -17,11 +17,11 @@ public class AstIdentExpr implements RValue {
         return name;
     }
 
-    public ArrayList<Integer> getTail() {
+    public ArrayList<String> getTail() {
         return tail;
     }
 
-    public void addTail(int a) {
+    public void addTail(String a) {
         tail.add(a);
     }
 

@@ -4,11 +4,11 @@ import java.util.ArrayList;
 
 public class AstArithExprIdentConstant implements AstArithExprPart, RValue {
     private final String name;
-    private final ArrayList<Integer> tail;
+    private final ArrayList<String> tail;
 
     private static String TYPE = "ARITHMETIC_CONSTANT";
 
-    public AstArithExprIdentConstant(String name, ArrayList<Integer> tail) {
+    public AstArithExprIdentConstant(String name, ArrayList<String> tail) {
         this.name = name;
         this.tail = tail;
     }

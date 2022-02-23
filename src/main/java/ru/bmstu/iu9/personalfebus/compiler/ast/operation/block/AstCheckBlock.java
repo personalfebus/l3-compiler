@@ -3,17 +3,13 @@ package ru.bmstu.iu9.personalfebus.compiler.ast.operation.block;
 import ru.bmstu.iu9.personalfebus.compiler.ast.operation.AstOperation;
 import ru.bmstu.iu9.personalfebus.compiler.ast.operation.condition.AstCondition;
 
-import java.util.List;
-
-public class AstWhileBlock implements AstOperation {
+public class AstCheckBlock implements AstOperation {
     private final AstCondition condition;
-    private final List<AstOperation> operations;
 
-    public final static String TYPE = "WHILE_BLOCK";
+    public final static String TYPE = "CHECK_BLOCK";
 
-    public AstWhileBlock(AstCondition condition, List<AstOperation> operations) {
+    public AstCheckBlock(AstCondition condition) {
         this.condition = condition;
-        this.operations = operations;
     }
 
     @Override

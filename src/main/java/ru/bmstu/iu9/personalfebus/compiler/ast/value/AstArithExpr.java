@@ -38,7 +38,7 @@ public class AstArithExpr implements RValue {
                 }
                 stack.push(part);
             } else {
-                //WTF TODO
+                //WTF
                 throw new BadArithmeticExpressionException();
             }
         } else if (part.getType().equals("ARITHMETIC_EXPRESSION")) {

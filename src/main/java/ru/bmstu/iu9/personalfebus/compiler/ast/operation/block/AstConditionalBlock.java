@@ -6,7 +6,6 @@ import ru.bmstu.iu9.personalfebus.compiler.ast.operation.condition.AstCondition;
 import java.util.ArrayList;
 import java.util.List;
 
-//todo
 public class AstConditionalBlock implements AstOperation {
     private List<AstConditionalSubBlock> blocks;
 

@@ -1,5 +1,6 @@
 0xF > 0xA + 1 -> &xaaxaxaxaxaxax ввв op(do, ko); "hello" 0xFFF '$"$' doko '$95$'
 
+--correct
 func SumVectors
     (A, B -> [int]) -> [int]
     size = length(A) -> int;
@@ -9,19 +10,22 @@ func SumVectors
     SumVectors = C
 endfunc
 
+--correct
 func SumVectors
     (A, B -> [int]) -> [int]
     size = length(A) -> int;
     C = [int size] -> [int];
     z = 2, x = 3, y = 0 -> int;
-    y = z + x y;
+    if z > 0 && x > 0 then
+    y = z + x y
+    endif;
     SumVectors = C
 endfunc
 
+--correct
 func SumVectors
-    (A, B -> [int]) -> [int]
+    (A, B, C -> [int]; D -> [char]) -> [int]
     size = length(A) -> int;
-    check size = length(B);
     C = [int size] -> [int];
     for i = 0 -> int to size - 1 do
         C[i] = A[i] + B[i]
@@ -29,13 +33,71 @@ func SumVectors
     SumVectors = C
 endfunc
 
-func main([[char]] args) -> int
+--correct
+func SumVectors
+    (A, B -> [int]) -> [int]
+    size = length(A) -> int;
+    check size == length(B);
+    C = [int size] -> [int];
+    for i = 0 -> int to size - 1 do
+        C[i] = A[i] + B[i]
+    endfor;
+    SumVectors = C
+endfunc
+
+--correct
+func SumVectors
+    (A, B -> [int]) -> [int]
+    size = length(A) -> int;
+    check size == length(B);
+    C = [int size] -> [int];
+    for i = 0 -> int to size - 1 do
+        C[i] = A[i] + B[i]
+    endfor;
+    z = 0 -> int;
+    while z < 10 do
+    z = z + 1
+    endwhile;
+    y = 2 -> int;
+    repeat
+    y = y + 2
+    until y > 1;
+    SumVectors = C
+endfunc
+
+func main(args -> [[char]]) -> int
     main = 0
 endfunc
 
-else if (currentToken.getType().equalsIgnoreCase(KeywordToken.TYPE)
-                    && (currentToken.getBody().equalsIgnoreCase("endfunc")
-                        || currentToken.getBody().equalsIgnoreCase("endproc"))) {
-                System.out.println("fffHUH?");
-                throw new NotAnArithmeticExpressionError();
-            }
+--correct
+func SumVectors
+    (A, B -> [int]) -> [int]
+    size = length(A) -> int;
+    check size == length(B);
+    C = [int size] -> [int];
+    for i = 0 -> int to size - 1 do
+        C[i] = A[i] + B[i]
+    endfor;
+    z = 0 -> int;
+    while z < 10 do
+    z = z + 1
+    endwhile;
+    y = 2 -> int;
+    repeat
+    y = y + 2
+    until y > 1;
+    SumVectors = C
+endfunc
+
+proc Proc2 (A, B -> [int])
+    size = length(A) -> int;
+    C = [int size] -> [int];
+    z = 2, x = 3, y = 0 -> int;
+    if z > 0 && x > 0 then
+    y = z + x y
+    endif
+endproc
+
+func main(args -> [[char]]) -> int
+    main = 0
+endfunc

@@ -15,7 +15,6 @@ public class StringToken implements Token {
 
     private String interpretBody(String str) {
         while (needInterpretation(str)) {
-            //todo $x16$
             if (str.contains("$@$")) {
                 String lit = "";
                 lit += (char)7;

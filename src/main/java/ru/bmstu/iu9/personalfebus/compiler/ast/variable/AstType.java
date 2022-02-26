@@ -1,6 +1,15 @@
 package ru.bmstu.iu9.personalfebus.compiler.ast.variable;
 
-public class AstType {
+import ru.bmstu.iu9.personalfebus.compiler.ast.AstFunction;
+import ru.bmstu.iu9.personalfebus.compiler.generator.Generatable;
+import ru.bmstu.iu9.personalfebus.compiler.generator.LabelGenerationHelper;
+import ru.bmstu.iu9.personalfebus.compiler.generator.VariableNameTranslator;
+import ru.bmstu.iu9.personalfebus.compiler.generator.exception.MissingException;
+
+import java.util.List;
+import java.util.Set;
+
+public class AstType implements Generatable {
     private final String typeName;
     private final boolean isArray;
     private final int arrayDepth;
@@ -21,5 +30,22 @@ public class AstType {
 
     public int getArrayDepth() {
         return arrayDepth;
+    }
+
+    @Override
+    public String generateIL(Set<AstFunction> declaredFunctions, VariableNameTranslator formalParameters, VariableNameTranslator declaredVariables, LabelGenerationHelper labelGenerationHelper) {
+        String name;
+        if (typeName.equalsIgnoreCase("int")) {
+            name = "int32";
+        } else name = typeName;
+
+        StringBuilder generatedCode = new StringBuilder(name);
+        String closure = "[]";
+
+        for (int i = 0; i < arrayDepth; i++) {
+            generatedCode.append(closure);
+        }
+
+        return generatedCode.toString();
     }
 }

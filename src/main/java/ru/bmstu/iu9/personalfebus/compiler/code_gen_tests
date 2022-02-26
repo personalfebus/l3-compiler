@@ -1,0 +1,211 @@
+----------------------------pow---------------------
+ .method private hidebysig static int32 Pow (int32 par0, int32 par1) cil managed {
+        .maxstack 2
+        .locals init (
+            [0] int32 var0,
+            [1] int32 var1
+        )
+        ldarg.0
+        ldc.i4 0
+        clt
+        brfalse if_1_skip
+        ldc.i4 666
+        throw
+        if_1_skip:
+        ldarg.0
+        stloc.0
+        ldc.i4 1
+        stloc.1
+        br for_1_condition
+        for_1_operations:
+        ldloc.0
+        ldarg.0
+        mul
+        stloc.0
+        ldloc.1
+        ldc.i4 1
+        add
+        stloc.1
+        for_1_condition:
+        ldloc.1
+        ldarg.1
+        clt
+        brtrue for_1_operations
+        ldloc.0
+        ret
+ }
+----------------------------test1-------------------
+===========================L3=====================
+func main(args -> [[char]]) -> int
+    b = 7, c = 9, d -> int;
+    d = 5 b - c;
+
+    if d > 20 then
+    d = d + 1;
+    main = d
+    endif;
+    d = d - 1;
+    main = d
+endfunc
+
+==========================IL=====================
+.method public hidebysig static int32 main (string arg0) cil managed {
+    .entrypoint
+    .maxstack 2
+    .locals init (
+        [0] int32 var0,
+        [1] int32 var1,
+        [2] int32 var2
+    )
+
+    ldc.i4.7
+    stloc.0
+    ldc.i4.s 9
+    stloc.1
+
+    ldc.i4 5
+    ldloc.0
+    mul
+    ldloc.1
+    sub
+    stloc.2
+    ldloc.2
+    ldc.i4 20
+    ble if_1_skip
+
+    ldloc.2
+    ldc.i4 1
+    add
+    stloc.2
+    ldloc.2
+    ret
+
+    if_1_skip:
+    ldloc.2
+    ldc.i4 1
+    sub
+    stloc.2
+    ldloc.2
+    ret
+}
+----------------------------test2-------------------
+===========================L3======================
+func main(args -> [[char]]) -> int
+    main = fibonacci(14)
+endfunc
+
+func fibonacci(n, m -> int; c -> char) -> int
+if n == 0 then
+fibonacci = 1
+elseif n == 1 then
+fibonacci = 2
+else
+fibonacci = fibonacci(n - 1) fibonacci(n - 2)
+endif
+endfunc
+===========================IL==========================
+.method public hidebysig static int32 main (string arg0) cil managed {
+    .entrypoint
+    .maxstack 2
+    ldc.14 14
+    call int32 fibonacci(int32)
+    ret
+}
+
+.method public hidebysig static int32 fibonacci (int32 arg0) cil managed {
+    .maxstack 8
+    ldarg.0
+    ldc.i4 0
+    ceq
+    brfalse if_1_block_2
+    ldc.i4 1
+    ret
+    br if_1_skip
+    if_1_block_2:
+    ldarg.0
+    ldc.i4 1
+    ceq
+    brfalse if_1_block_3
+    ldc.i4 2
+    ret
+    br if_1_skip
+    if_1_block_3:
+    ldarg.0
+    ldc.i4 1
+    sub
+    call int32 fibonacci(int32)
+    ldarg.0
+    ldc.i4 2
+    sub
+    call int32 fibonacci(int32)
+    mul
+    ret
+    br if_1_skip
+    if_1_skip:
+}
+----------------------------test3-------------------
+===========================L3======================
+func main(args -> [[char]]) -> int
+    a = [int 10] -> [int];
+    for h@h@ = 0 -> int to 9 do
+        a[h@h@] = h@h@
+    endfor;
+
+    $007$ = 0 -> int;
+    while $007$ < 10 do
+        a[$007$] = a[$007$] a[$007$]
+    endwhile;
+
+    main = 0
+endfunc
+===========================IL==========================
+.method public hidebysig static int32 main (string arg0) cil managed {
+    .entrypoint
+    .maxstack 2
+    .locals ([0] int32[] var0, [1] int32 var1, [2] int32 var2)
+    ldc.i4 10
+
+    newarr int32
+    stloc.0
+
+    ldc.i4 0
+    stloc.1
+    br for_1_condition
+    for_1_operations:
+    ldloc.0
+    ldloc.1
+    ldloc.1
+    stelem.i4
+    ldloc.1
+    ldc.i4 1
+    add
+    stloc.1
+    for_1_condition:
+    ldloc.1
+    ldc.i4 10
+    clt
+    brtrue for_1_operations
+
+    ldc.i4 0
+    stloc.2
+    br while_1_conditions
+    while_1_operations:
+    ldloc.0
+    ldloc.2
+    ldloc.0
+    ldloc.2
+    ldelem.i4
+    ldloc.0
+    ldloc.2
+    ldelem.i4
+    mul
+    stelem.i4
+    while_1_conditions:
+    ldloc.2
+    ldc.i4 10
+    clt
+    brtrue while_1_operations
+
+    ldc.i4 0
+    ret
+}

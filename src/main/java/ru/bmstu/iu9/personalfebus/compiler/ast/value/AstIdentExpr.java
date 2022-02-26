@@ -1,6 +1,7 @@
 package ru.bmstu.iu9.personalfebus.compiler.ast.value;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class AstIdentExpr implements RValue {
     private String name;
@@ -28,5 +29,18 @@ public class AstIdentExpr implements RValue {
     @Override
     public String getType() {
         return TYPE;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AstIdentExpr expr = (AstIdentExpr) o;
+        return name.equals(expr.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
     }
 }

@@ -1,6 +1,8 @@
 package ru.bmstu.iu9.personalfebus.compiler;
 
 import ru.bmstu.iu9.personalfebus.compiler.ast.AstProgram;
+import ru.bmstu.iu9.personalfebus.compiler.generator.LabelGenerationHelper;
+import ru.bmstu.iu9.personalfebus.compiler.generator.VariableNameTranslator;
 import ru.bmstu.iu9.personalfebus.compiler.lexer.Lexer;
 import ru.bmstu.iu9.personalfebus.compiler.lexer.token.Token;
 import ru.bmstu.iu9.personalfebus.compiler.parser.Parser;
@@ -8,6 +10,7 @@ import ru.bmstu.iu9.personalfebus.compiler.parser.Parser;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashSet;
 
 public class LanguageInput {
     public static void main(String[] args) throws IOException {
@@ -29,6 +32,7 @@ public class LanguageInput {
         try {
             AstProgram program = parser.parse();
             //code gen and semantics
+            System.out.println(program.generateIL(new HashSet<>(), new VariableNameTranslator(), new VariableNameTranslator(), new LabelGenerationHelper()));
         } catch (Exception ex) {
             System.out.println(ex.toString());
         }

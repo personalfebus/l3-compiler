@@ -4,9 +4,7 @@ import ru.bmstu.iu9.personalfebus.compiler.ast.AstFunction;
 import ru.bmstu.iu9.personalfebus.compiler.generator.Generatable;
 import ru.bmstu.iu9.personalfebus.compiler.generator.LabelGenerationHelper;
 import ru.bmstu.iu9.personalfebus.compiler.generator.VariableNameTranslator;
-import ru.bmstu.iu9.personalfebus.compiler.generator.exception.MissingException;
 
-import java.util.List;
 import java.util.Set;
 
 public class AstType implements Generatable {
@@ -33,7 +31,7 @@ public class AstType implements Generatable {
     }
 
     @Override
-    public String generateIL(Set<AstFunction> declaredFunctions, VariableNameTranslator formalParameters, VariableNameTranslator declaredVariables, LabelGenerationHelper labelGenerationHelper) {
+    public String generateIL(Set<AstFunction> declaredFunctions, VariableNameTranslator formalParameters, VariableNameTranslator declaredVariables, LabelGenerationHelper labelGenerationHelper, AstFunction currentFunction) {
         String name;
         if (typeName.equalsIgnoreCase("int")) {
             name = "int32";

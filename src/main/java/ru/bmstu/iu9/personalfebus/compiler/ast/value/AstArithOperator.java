@@ -1,5 +1,13 @@
 package ru.bmstu.iu9.personalfebus.compiler.ast.value;
 
+import ru.bmstu.iu9.personalfebus.compiler.ast.AstFunction;
+import ru.bmstu.iu9.personalfebus.compiler.generator.LabelGenerationHelper;
+import ru.bmstu.iu9.personalfebus.compiler.generator.VariableNameTranslator;
+import ru.bmstu.iu9.personalfebus.compiler.generator.exception.MissingException;
+import ru.bmstu.iu9.personalfebus.compiler.parser.exception.TypeIncompatibilityException;
+
+import java.util.Set;
+
 public class AstArithOperator implements AstArithExprPart {
     private final char operator;
 
@@ -75,5 +83,37 @@ public class AstArithOperator implements AstArithExprPart {
     @Override
     public String getConstantType() {
         return null;
+    }
+
+    @Override
+    public String generateIL(Set<AstFunction> declaredFunctions, VariableNameTranslator formalParameters, VariableNameTranslator declaredVariables, LabelGenerationHelper labelGenerationHelper, AstFunction currentFunction) throws MissingException, TypeIncompatibilityException {
+        switch (operator) {
+            case '-': {
+                if (subType.equals("UNARY_OPERATOR")) {
+                    return "neg\n";
+                } else {
+                    return "sub\n";
+                }
+            }
+            case '^': {
+                // XDDDDDDDDDDDDD
+                return "call int32 Pow(int32, int32)\n";
+            }
+            case '*': {
+                return "mul\n";
+            }
+            case '/': {
+                return "div\n";
+            }
+            case '%': {
+                return "rem\n";
+            }
+            case '+': {
+                return "add\n";
+            }
+            default: {
+                return "wtf unknown opperand in code gen\n";
+            }
+        }
     }
 }

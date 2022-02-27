@@ -1,13 +1,14 @@
 package ru.bmstu.iu9.personalfebus.compiler.ast;
 
-import ru.bmstu.iu9.personalfebus.compiler.ast.variable.AstVariable;
 import ru.bmstu.iu9.personalfebus.compiler.generator.Generatable;
 import ru.bmstu.iu9.personalfebus.compiler.generator.LabelGenerationHelper;
 import ru.bmstu.iu9.personalfebus.compiler.generator.VariableNameTranslator;
 import ru.bmstu.iu9.personalfebus.compiler.generator.exception.MissingException;
+import ru.bmstu.iu9.personalfebus.compiler.parser.exception.AlreadyDeclaredException;
+import ru.bmstu.iu9.personalfebus.compiler.parser.exception.BadArithmeticExpressionException;
+import ru.bmstu.iu9.personalfebus.compiler.parser.exception.TypeIncompatibilityException;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -39,13 +40,13 @@ public class AstFunction implements Generatable {
 
     //todo
     @Override
-    public String generateIL(Set<AstFunction> declaredFunctions, VariableNameTranslator formalParameters, VariableNameTranslator declaredVariables, LabelGenerationHelper labelGenerationHelper) throws MissingException {
+    public String generateIL(Set<AstFunction> declaredFunctions, VariableNameTranslator formalParameters, VariableNameTranslator declaredVariables, LabelGenerationHelper labelGenerationHelper, AstFunction currentFunction) throws MissingException, TypeIncompatibilityException, AlreadyDeclaredException, BadArithmeticExpressionException {
         formalParameters.setVariables(new ArrayList<>());
         declaredVariables.setVariables(new ArrayList<>());
         StringBuilder generatedCode = new StringBuilder();
 
-        generatedCode.append(header.generateIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper));
-        generatedCode.append(body.generateIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper));
+        generatedCode.append(header.generateIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper, this));
+        generatedCode.append(body.generateIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper, this));
         generatedCode.append("}\n");
 
         return generatedCode.toString();

@@ -1,6 +1,5 @@
 package ru.bmstu.iu9.personalfebus.compiler.ast;
 
-import ru.bmstu.iu9.personalfebus.compiler.ast.value.AstIdentExpr;
 import ru.bmstu.iu9.personalfebus.compiler.ast.variable.AstType;
 import ru.bmstu.iu9.personalfebus.compiler.ast.variable.AstVariable;
 import ru.bmstu.iu9.personalfebus.compiler.generator.Generatable;
@@ -61,18 +60,18 @@ public class AstFunctionHeader implements Generatable {
     }
 
     @Override
-    public String generateIL(Set<AstFunction> declaredFunctions, VariableNameTranslator formalParameters, VariableNameTranslator declaredVariables, LabelGenerationHelper labelGenerationHelper) throws MissingException {
+    public String generateIL(Set<AstFunction> declaredFunctions, VariableNameTranslator formalParameters, VariableNameTranslator declaredVariables, LabelGenerationHelper labelGenerationHelper, AstFunction currentFunction) throws MissingException {
         List<AstVariable> list = new ArrayList<>(variables);
         formalParameters.setVariables(list);
         StringBuilder generatedCode = new StringBuilder();
         generatedCode.append(".method public hidebysig static ")
-                .append(returnType.generateIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper))
+                .append(returnType.generateIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper, currentFunction))
                 .append(" ")
                 .append(name)
                 .append("(");
 
         for (AstVariable variable : variables) {
-            generatedCode.append(variable.generateDeclarationIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper))
+            generatedCode.append(variable.generateDeclarationIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper, currentFunction))
                     .append(", ");
         }
         generatedCode.replace(generatedCode.length() - 2, generatedCode.length(), ")");

@@ -1,6 +1,14 @@
 package ru.bmstu.iu9.personalfebus.compiler.ast.value;
 
+import ru.bmstu.iu9.personalfebus.compiler.ast.AstFunction;
+import ru.bmstu.iu9.personalfebus.compiler.ast.operation.AstFunctionCallOperation;
+import ru.bmstu.iu9.personalfebus.compiler.generator.LabelGenerationHelper;
+import ru.bmstu.iu9.personalfebus.compiler.generator.VariableNameTranslator;
+import ru.bmstu.iu9.personalfebus.compiler.generator.exception.MissingException;
+import ru.bmstu.iu9.personalfebus.compiler.parser.exception.TypeIncompatibilityException;
+
 import java.util.List;
+import java.util.Set;
 
 public class AstArithExprFuncConstant implements AstArithExprPart, RValue {
     private final String name;
@@ -23,5 +31,13 @@ public class AstArithExprFuncConstant implements AstArithExprPart, RValue {
     @Override
     public String getConstantType() {
         return "FUNC_CONSTANT";
+    }
+
+    @Override
+    public String generateIL(Set<AstFunction> declaredFunctions, VariableNameTranslator formalParameters, VariableNameTranslator declaredVariables, LabelGenerationHelper labelGenerationHelper, AstFunction currentFunction) throws MissingException, TypeIncompatibilityException {
+        AstFunctionCallOperation op = new AstFunctionCallOperation(name);
+        op.setArguments(arguments);
+
+        return op.generateIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper, currentFunction);
     }
 }

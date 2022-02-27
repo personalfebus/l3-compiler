@@ -1,11 +1,13 @@
 package ru.bmstu.iu9.personalfebus.compiler.ast.value;
 
+import ru.bmstu.iu9.personalfebus.compiler.ast.AstFunction;
+import ru.bmstu.iu9.personalfebus.compiler.generator.LabelGenerationHelper;
+import ru.bmstu.iu9.personalfebus.compiler.generator.VariableNameTranslator;
+import ru.bmstu.iu9.personalfebus.compiler.generator.exception.MissingException;
 import ru.bmstu.iu9.personalfebus.compiler.parser.exception.BadArithmeticExpressionException;
+import ru.bmstu.iu9.personalfebus.compiler.parser.exception.TypeIncompatibilityException;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
+import java.util.*;
 
 //возможно стоит добавить проверку типов прямо здесь (не надо)
 public class AstArithExpr implements RValue {
@@ -20,6 +22,10 @@ public class AstArithExpr implements RValue {
     public AstArithExpr() {
         this.parts = new ArrayList<>();
         this.stack = new ArrayDeque<>();
+    }
+
+    public List<AstArithExprPart> getParts() {
+        return parts;
     }
 
     public void addPart(AstArithExprPart part) throws BadArithmeticExpressionException {
@@ -72,5 +78,20 @@ public class AstArithExpr implements RValue {
     @Override
     public String getType() {
         return TYPE;
+    }
+
+    @Override
+    public String generateIL(Set<AstFunction> declaredFunctions, VariableNameTranslator formalParameters, VariableNameTranslator declaredVariables, LabelGenerationHelper labelGenerationHelper, AstFunction currentFunction) throws MissingException, TypeIncompatibilityException {
+        StringBuilder generatedCode = new StringBuilder();
+        for (AstArithExprPart part : parts) {
+            generatedCode.append(part.generateIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper, currentFunction));
+        }
+
+        return generatedCode.toString();
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 }

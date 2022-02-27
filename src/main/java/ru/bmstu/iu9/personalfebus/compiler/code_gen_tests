@@ -147,8 +147,9 @@ endfunc
 ===========================L3======================
 func main(args -> [[char]]) -> int
     a = [int 10] -> [int];
+    a[0] = 1;
     for h@h@ = 0 -> int to 9 do
-        a[h@h@] = h@h@
+        a[h@h@] = h@h@ + 3 - a[0]
     endfor;
 
     $007$ = 0 -> int;
@@ -209,3 +210,9 @@ endfunc
     ldc.i4 0
     ret
 }
+
+=-=-=-==-=
+func main(args -> [[char]]) -> int
+    a = [int 10] -> [int];
+    main = a
+endfunc

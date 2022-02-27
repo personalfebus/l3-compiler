@@ -532,7 +532,8 @@ public class Parser implements IParser {
                     || currentToken.getBody().equalsIgnoreCase("else")
                     || currentToken.getBody().equalsIgnoreCase("endfor")
                     || currentToken.getBody().equalsIgnoreCase("endwhile")
-                    || currentToken.getBody().equalsIgnoreCase("until")) {
+                    || currentToken.getBody().equalsIgnoreCase("until")
+                    || currentToken.getBody().equalsIgnoreCase(";")) {
                 return new InitializationOrAssigment(set, false);
             }
 
@@ -609,6 +610,8 @@ public class Parser implements IParser {
         AstType type = parseType();
         RValue rValue = parseRValue();
 
+        if (type.isArray()) throw new BadSyntaxException("Bad syntax at (" + currentToken.getLine() + "," + currentToken.getPosition() + ") in type initialization: expected basic type got array of " + type.getTypeName());
+
         AstTypeInit init = new AstTypeInit(type, rValue, depth);
 
         for (int i = depth; i > 0; i--) {
@@ -633,11 +636,13 @@ public class Parser implements IParser {
         if (currentToken.getType().equalsIgnoreCase(StringToken.TYPE)) {
             //string
             AstArithExprConstant constant = new AstArithExprConstant(currentToken.getBody());
+            constant.setSubType("string");
             arithExpr.addPart(constant);
             nextToken();
         } else if (currentToken.getType().equalsIgnoreCase(SymbolToken.TYPE)) {
             //symbol
             AstArithExprConstant constant = new AstArithExprConstant(currentToken.getBody());
+            constant.setSubType("char");
             arithExpr.addPart(constant);
             nextToken();
         } else if (currentToken.getType().equalsIgnoreCase(KeywordToken.TYPE)) {
@@ -645,6 +650,7 @@ public class Parser implements IParser {
                     || currentToken.getBody().equalsIgnoreCase("tt")) {
                 //boolean constants
                 AstArithExprConstant constant = new AstArithExprConstant(currentToken.getBody());
+                constant.setSubType("bool");
                 arithExpr.addPart(constant);
                 nextToken();
             } else if (currentToken.getBody().equalsIgnoreCase("endfunc")

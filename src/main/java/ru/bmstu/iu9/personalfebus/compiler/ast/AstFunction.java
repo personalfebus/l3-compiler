@@ -38,7 +38,6 @@ public class AstFunction implements Generatable {
         return Objects.hash(header);
     }
 
-    //todo
     @Override
     public String generateIL(Set<AstFunction> declaredFunctions, VariableNameTranslator formalParameters, VariableNameTranslator declaredVariables, LabelGenerationHelper labelGenerationHelper, AstFunction currentFunction) throws MissingException, TypeIncompatibilityException, AlreadyDeclaredException, BadArithmeticExpressionException {
         formalParameters.setVariables(new ArrayList<>());

@@ -151,7 +151,6 @@ public class AstVariable implements Generatable {
         return generatedCode.toString();
     }
 
-    //todo declaration of locals - ??
     public String generateDeclarationIL(Set<AstFunction> declaredFunctions, VariableNameTranslator formalParameters, VariableNameTranslator declaredVariables, LabelGenerationHelper labelGenerationHelper, AstFunction currentFunction) {
         StringBuilder generatedCode = new StringBuilder();
 

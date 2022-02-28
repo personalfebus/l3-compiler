@@ -41,7 +41,6 @@ public class AstForBlock implements AstOperation {
         return TYPE;
     }
 
-    //todo
     @Override
     public String generateIL(Set<AstFunction> declaredFunctions, VariableNameTranslator formalParameters, VariableNameTranslator declaredVariables, LabelGenerationHelper labelGenerationHelper, StringBuilder locals, AstFunction currentFunction) throws MissingException, TypeIncompatibilityException, AlreadyDeclaredException, BadArithmeticExpressionException {
         int labelNum = labelGenerationHelper.getNum();

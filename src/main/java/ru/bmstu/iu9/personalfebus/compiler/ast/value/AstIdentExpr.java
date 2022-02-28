@@ -90,8 +90,10 @@ public class AstIdentExpr implements RValue {
         }
 
         for (int i = 0; i < tail.size(); i++) {
-            generatedCode.append(loadCommand)
-                    .append('\n');
+            if (i == 0) {
+                generatedCode.append(loadCommand)
+                        .append('\n');
+            }
 
             if (Character.isDigit(tail.get(i).charAt(0))) {
                 generatedCode.append("ldc.i4 ")

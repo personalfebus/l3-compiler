@@ -17,6 +17,7 @@ import ru.bmstu.iu9.personalfebus.compiler.parser.exception.AlreadyDeclaredExcep
 import ru.bmstu.iu9.personalfebus.compiler.parser.exception.BadArithmeticExpressionException;
 import ru.bmstu.iu9.personalfebus.compiler.parser.exception.TypeIncompatibilityException;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -58,13 +59,29 @@ public class AstForBlock implements AstOperation {
         for (AstOperation operation : operations) {
             generatedCode.append(operation.generateIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper, locals, currentFunction));
         }
-        //todo step == to ???
-        //generatedCode.append(generateStep(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper, locals, currentFunction));
-        generatedCode.append("for_" + labelNum + "_conditions:\n");
-        //condtion
 
-        //todo conditions
-        generatedCode.append("brtrue for_" + labelNum + "_operations\n");
+        //step
+        generatedCode.append(generateStep(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper, locals, currentFunction));
+        generatedCode.append("for_" + labelNum + "_conditions:\n");
+
+        //condtion
+        String loadCoomand = "";
+        if (ioa.variables.size() == 0) {
+            throw new MissingException("for variable declaration");
+        }
+
+        for (AstVariable var : ioa.variables) {
+            if (formalParameters.hasVariable(var)) {
+                loadCoomand = "ldarg." + formalParameters.getVariableIndex(var);
+            } else if (declaredVariables.hasVariable(var)) {
+                loadCoomand = "ldloc." + declaredVariables.getVariableIndex(var);
+            } else throw new MissingException("for variable declaration");
+            break;
+        }
+        generatedCode.append(loadCoomand)
+                .append("\n");
+        generatedCode.append(to.generateIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper, currentFunction));
+        generatedCode.append("ble for_" + labelNum + "_operations\n");
         return generatedCode.toString();
     }
 
@@ -87,7 +104,9 @@ public class AstForBlock implements AstOperation {
         expr.emptyStack();
 
         first.setrValue(expr);
-        AstVariableAssigment assigment = new AstVariableAssigment(ioa.variables);
+        Set<AstVariable> vr = new HashSet<>();
+        vr.add(first);
+        AstVariableAssigment assigment = new AstVariableAssigment(vr);
         generatedCode.append(assigment.generateIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper, locals, currentFunction));
         return generatedCode.toString();
     }

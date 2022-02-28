@@ -25,6 +25,10 @@ public class VariableNameTranslator {
         return variables.indexOf(variable);
     }
 
+    public AstVariable getVariable(int i) {
+        return variables.get(i);
+    }
+
     public boolean hasByIdentExpr(AstIdentExpr expr) {
         for (AstVariable variable : variables) {
             if (variable.getExpr().equals(expr)) {

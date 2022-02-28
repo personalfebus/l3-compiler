@@ -74,15 +74,17 @@ public class AstVariable implements Generatable {
         StringBuilder generatedCode = new StringBuilder();
         String storeCommand = "";
         String loadCommand = "";
-
+        AstVariable actualVariable = null;
         if (formalParameters.hasVariable(this)) {
             int pos = formalParameters.getVariableIndex(this);
             storeCommand = "starg." + pos;
             loadCommand = "ldarg." + pos;
+            actualVariable = formalParameters.getVariable(pos);
         } else if (declaredVariables.hasVariable(this)) {
             int pos = declaredVariables.getVariableIndex(this);
             storeCommand = "stloc." + pos;
             loadCommand = "ldloc." + pos;
+            actualVariable = declaredVariables.getVariable(pos);
         } else if (currentFunction.getHeader().getName().equalsIgnoreCase(expr.getName())) {
             storeCommand = "ret";
             loadCommand = "dont_load_me_pls";
@@ -130,7 +132,14 @@ public class AstVariable implements Generatable {
                 System.out.println("----------");
                 System.out.println(generatedCode);
                 generatedCode.append(rValue.generateIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper, currentFunction));
-                generatedCode.append("stelem.i4\n");
+
+                if (actualVariable.type != null && actualVariable.type.getTypeName().equalsIgnoreCase("char")) {
+                    generatedCode.append("stelem char\n");
+                } else if (actualVariable.type != null && actualVariable.type.getTypeName().equalsIgnoreCase("bool")) {
+                    generatedCode.append("stelem bool\n");
+                } else {
+                    generatedCode.append("stelem.i4\n");
+                }
                 System.out.println("----------");
                 System.out.println(generatedCode);
             } else {

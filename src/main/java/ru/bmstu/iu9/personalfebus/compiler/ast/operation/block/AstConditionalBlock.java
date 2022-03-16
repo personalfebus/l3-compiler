@@ -6,6 +6,7 @@ import ru.bmstu.iu9.personalfebus.compiler.generator.LabelGenerationHelper;
 import ru.bmstu.iu9.personalfebus.compiler.generator.VariableNameTranslator;
 import ru.bmstu.iu9.personalfebus.compiler.generator.exception.MissingException;
 import ru.bmstu.iu9.personalfebus.compiler.parser.exception.AlreadyDeclaredException;
+import ru.bmstu.iu9.personalfebus.compiler.parser.exception.BadArithmeticExpressionException;
 import ru.bmstu.iu9.personalfebus.compiler.parser.exception.TypeIncompatibilityException;
 
 import java.util.ArrayList;
@@ -30,9 +31,15 @@ public class AstConditionalBlock implements AstOperation {
         return TYPE;
     }
 
-    //todo
     @Override
-    public String generateIL(Set<AstFunction> declaredFunctions, VariableNameTranslator formalParameters, VariableNameTranslator declaredVariables, LabelGenerationHelper labelGenerationHelper, StringBuilder locals, AstFunction currentFunction) throws MissingException, TypeIncompatibilityException, AlreadyDeclaredException {
-        return "";
+    public String generateIL(Set<AstFunction> declaredFunctions, VariableNameTranslator formalParameters, VariableNameTranslator declaredVariables, LabelGenerationHelper labelGenerationHelper, StringBuilder locals, AstFunction currentFunction) throws MissingException, TypeIncompatibilityException, AlreadyDeclaredException, BadArithmeticExpressionException {
+        StringBuilder generatedCode = new StringBuilder();
+        if (blocks.size() < 1) throw new MissingException("If body");
+
+        for (AstConditionalSubBlock subBlock : blocks) {
+            generatedCode.append(subBlock.generatedIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper, locals, currentFunction));
+        }
+
+        return generatedCode.toString();
     }
 }

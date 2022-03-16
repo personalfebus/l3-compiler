@@ -3,6 +3,7 @@ package ru.bmstu.iu9.personalfebus.compiler.ast.operation;
 import ru.bmstu.iu9.personalfebus.compiler.ast.AstFunction;
 import ru.bmstu.iu9.personalfebus.compiler.ast.AstFunctionHeader;
 import ru.bmstu.iu9.personalfebus.compiler.ast.value.RValue;
+import ru.bmstu.iu9.personalfebus.compiler.ast.variable.AstVariable;
 import ru.bmstu.iu9.personalfebus.compiler.generator.LabelGenerationHelper;
 import ru.bmstu.iu9.personalfebus.compiler.generator.VariableNameTranslator;
 import ru.bmstu.iu9.personalfebus.compiler.generator.exception.MissingException;
@@ -47,7 +48,8 @@ public class AstFunctionCallOperation implements RValue, AstOperation {
     @Override
     public String generateIL(Set<AstFunction> declaredFunctions, VariableNameTranslator formalParameters, VariableNameTranslator declaredVariables, LabelGenerationHelper labelGenerationHelper, AstFunction currentFunction) throws MissingException, TypeIncompatibilityException {
         StringBuilder generatedCode = new StringBuilder();
-        generatedCode.append("call ");
+        StringBuilder funcCall = new StringBuilder();
+        funcCall.append("call ");
         AstFunctionHeader targetFunction = null;
 
         for (AstFunction function : declaredFunctions) {
@@ -61,7 +63,20 @@ public class AstFunctionCallOperation implements RValue, AstOperation {
             throw new MissingException("Declaration for function " + name + " ");
         }
 
-        generatedCode.append(targetFunction.getReturnType().generateIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper, currentFunction));
+        funcCall.append(targetFunction.getReturnType().generateIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper, currentFunction))
+                .append(" ")
+                .append(targetFunction.getName())
+                .append("(");
+
+        for (AstVariable v : targetFunction.getVariables()) {
+            funcCall.append(v.getType().generateIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper, currentFunction))
+                    .append(", ");
+        }
+        if (targetFunction.getVariables().size() > 0) {
+            funcCall.replace(funcCall.length() - 2, funcCall.length(), ")\n");
+        } else {
+            funcCall.append(")\n");
+        }
 
         if (arguments.size() != targetFunction.getVariables().size()) {
             throw new MissingException("Function declaration of " + targetFunction.getName() + " with " + arguments.size());
@@ -70,6 +85,8 @@ public class AstFunctionCallOperation implements RValue, AstOperation {
         for (RValue rValue : arguments) {
             generatedCode.append(rValue.generateIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper, currentFunction));
         }
+
+        generatedCode.append(funcCall);
 
         return generatedCode.toString();
     }

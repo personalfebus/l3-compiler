@@ -94,7 +94,7 @@ func main(args -> [[char]]) -> int
     main = fibonacci(14)
 endfunc
 
-func fibonacci(n, m -> int; c -> char) -> int
+func fibonacci(n -> int) -> int
 if n == 0 then
 fibonacci = 1
 elseif n == 1 then
@@ -154,9 +154,16 @@ func main(args -> [[char]]) -> int
 
     $007$ = 0 -> int;
     while $007$ < 10 do
-        a[$007$] = a[$007$] a[$007$]
+        a[$007$] = a[$007$] a[$007$];
+        $007$ = $007$ + 1
     endwhile;
 
+    y = 2 -> int;
+    repeat
+    y = y + 2
+    until y > 1;
+
+    check y == 4;
 
     args[0][1] = '$@$';
     main = 0

@@ -24,7 +24,6 @@ public class AstFunctionBody implements Generatable {
         this.operations.add(operation);
     }
 
-    //todo - ??
     @Override
     public String generateIL(Set<AstFunction> declaredFunctions, VariableNameTranslator formalParameters, VariableNameTranslator declaredVariables, LabelGenerationHelper labelGenerationHelper, AstFunction currentFunction) throws MissingException, TypeIncompatibilityException, AlreadyDeclaredException, BadArithmeticExpressionException {
         StringBuilder generatedCode = new StringBuilder();
@@ -34,7 +33,12 @@ public class AstFunctionBody implements Generatable {
             generatedCode.append(operation.generateIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper, locals, currentFunction));
         }
 
-        locals.replace(locals.length() - 2, locals.length(), ")\n");
+        if (locals.charAt(locals.length() - 1) != '(') {
+            locals.replace(locals.length() - 2, locals.length(), ")\n");
+        } else {
+            locals.append(")\n");
+        }
+
         return locals.toString() + generatedCode.toString();
     }
 }

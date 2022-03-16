@@ -7,6 +7,7 @@ import ru.bmstu.iu9.personalfebus.compiler.generator.LabelGenerationHelper;
 import ru.bmstu.iu9.personalfebus.compiler.generator.VariableNameTranslator;
 import ru.bmstu.iu9.personalfebus.compiler.generator.exception.MissingException;
 import ru.bmstu.iu9.personalfebus.compiler.parser.exception.AlreadyDeclaredException;
+import ru.bmstu.iu9.personalfebus.compiler.parser.exception.BadArithmeticExpressionException;
 import ru.bmstu.iu9.personalfebus.compiler.parser.exception.TypeIncompatibilityException;
 
 import java.util.List;
@@ -28,9 +29,28 @@ public class AstRepeatBlock implements AstOperation {
         return TYPE;
     }
 
-    //todo
     @Override
-    public String generateIL(Set<AstFunction> declaredFunctions, VariableNameTranslator formalParameters, VariableNameTranslator declaredVariables, LabelGenerationHelper labelGenerationHelper, StringBuilder locals, AstFunction currentFunction) throws MissingException, TypeIncompatibilityException, AlreadyDeclaredException {
-        return "";
+    public String generateIL(Set<AstFunction> declaredFunctions, VariableNameTranslator formalParameters, VariableNameTranslator declaredVariables, LabelGenerationHelper labelGenerationHelper, StringBuilder locals, AstFunction currentFunction) throws MissingException, TypeIncompatibilityException, AlreadyDeclaredException, BadArithmeticExpressionException {
+        StringBuilder generatedCode = new StringBuilder();
+        int num = labelGenerationHelper.getNum();
+
+        generatedCode.append("repeat_")
+                .append(num)
+                .append("_operations:\n");
+
+        for (AstOperation operation : operations) {
+            generatedCode.append(operation.generateIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper, locals, currentFunction));
+        }
+
+        generatedCode.append("repeat_")
+                .append(num)
+                .append("_conditions:\n");
+        generatedCode.append(condition.generatedIL(declaredFunctions, formalParameters, declaredVariables, labelGenerationHelper, locals, currentFunction));
+
+        generatedCode.append("brtrue repeat_")
+                .append(num)
+                .append("_operations\n");
+
+        return generatedCode.toString();
     }
 }
